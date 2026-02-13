@@ -1799,6 +1799,8 @@ $pageTitle = match ($section) {
 
     $tabs = [
       ['key' => 'home', 'label' => 'Главная'],
+      ['key' => 'home-reviews', 'label' => 'Отзывы'],
+      ['key' => 'home-faq', 'label' => 'Вопросы'],
       ['key' => 'about', 'label' => 'О нас'],
       ['key' => 'services', 'label' => 'Услуги'],
       ['key' => 'vacancies', 'label' => 'Вакансии'],
@@ -1870,10 +1872,80 @@ $pageTitle = match ($section) {
         </div>
       </div>
 
+      <?php
+        $homeBlocks = is_array($pageBlocks['home'] ?? null) ? $pageBlocks['home'] : [];
+        $homeFaqs = is_array($homeBlocks['faqs'] ?? null) ? $homeBlocks['faqs'] : [];
+        $homeReviews = is_array($homeBlocks['reviews'] ?? null) ? $homeBlocks['reviews'] : [];
+      ?>
+
+      <div class="hidden space-y-4" data-settings-tab-pane="home-reviews">
+        <h3 class="text-lg font-semibold text-gray-900">Главная: отзывы</h3>
+        <p class="text-sm text-gray-600">Заполните отзывы для главной страницы. Пустые строки будут пропущены.</p>
+
+        <div class="rounded-3xl border border-gray-200 p-4 space-y-4">
+          <?php for ($i = 0; $i < 8; $i++): ?>
+            <?php
+              $row = is_array($homeReviews[$i] ?? null) ? $homeReviews[$i] : [];
+              $quote = (string) ($row['quote'] ?? '');
+              $name = (string) ($row['name'] ?? '');
+              $meta = (string) ($row['meta'] ?? '');
+            ?>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+              <div class="md:col-span-2">
+                <label class="block text-xs text-gray-600 mb-1">Текст отзыва #<?= $e((string) ($i + 1)) ?></label>
+                <textarea name="pageBlocks[home][reviews][<?= $e((string) $i) ?>][quote]" class="<?= $e($textareaClass) ?>"><?= $e($quote) ?></textarea>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">Имя</label>
+                <input name="pageBlocks[home][reviews][<?= $e((string) $i) ?>][name]" class="<?= $e($inputBase) ?>" value="<?= $e($name) ?>">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">Подпись (компания/роль)</label>
+                <input name="pageBlocks[home][reviews][<?= $e((string) $i) ?>][meta]" class="<?= $e($inputBase) ?>" value="<?= $e($meta) ?>">
+              </div>
+            </div>
+          <?php endfor; ?>
+        </div>
+      </div>
+
+      <div class="hidden space-y-4" data-settings-tab-pane="home-faq">
+        <h3 class="text-lg font-semibold text-gray-900">Главная: вопросы</h3>
+        <p class="text-sm text-gray-600">FAQ для блока «Частые вопросы». Пустые строки будут пропущены.</p>
+
+        <div class="rounded-3xl border border-gray-200 p-4 space-y-4">
+          <?php for ($i = 0; $i < 12; $i++): ?>
+            <?php
+              $row = is_array($homeFaqs[$i] ?? null) ? $homeFaqs[$i] : [];
+              $q = (string) ($row['question'] ?? '');
+              $a = (string) ($row['answer'] ?? '');
+            ?>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">Вопрос #<?= $e((string) ($i + 1)) ?></label>
+                <input name="pageBlocks[home][faqs][<?= $e((string) $i) ?>][question]" class="<?= $e($inputBase) ?>" value="<?= $e($q) ?>">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">Ответ</label>
+                <textarea name="pageBlocks[home][faqs][<?= $e((string) $i) ?>][answer]" class="<?= $e($textareaClass) ?>"><?= $e($a) ?></textarea>
+              </div>
+            </div>
+          <?php endfor; ?>
+        </div>
+      </div>
+
       <?php foreach (['home','about','services','vacancies'] as $pageKey): ?>
         <?php
           $pc = is_array($pageContent[$pageKey] ?? null) ? $pageContent[$pageKey] : [];
-          $blockFields = $collectStringFields(is_array($pageBlocks[$pageKey] ?? null) ? $pageBlocks[$pageKey] : []);
+          $blockFieldsRaw = $collectStringFields(is_array($pageBlocks[$pageKey] ?? null) ? $pageBlocks[$pageKey] : []);
+          // Home: reviews and faqs have their own dedicated tabs.
+          $blockFields = ($pageKey === 'home')
+            ? array_values(array_filter($blockFieldsRaw, static function (array $field): bool {
+                $path = $field['path'] ?? [];
+                if (!is_array($path) || $path === []) return true;
+                $root = $path[0] ?? '';
+                return !in_array((string) $root, ['faqs', 'reviews'], true);
+              }))
+            : $blockFieldsRaw;
         ?>
         <div class="hidden space-y-4" data-settings-tab-pane="<?= $e($pageKey) ?>">
           <h3 class="text-lg font-semibold text-gray-900">Страница: <?= $e($pageLabelMap[$pageKey] ?? $pageKey) ?></h3>

@@ -143,48 +143,39 @@ if (count($slider2) === 0) {
 	        </h2>
 	        <div class="col-start-1 col-end-7 lg:col-start-7 lg:col-end-13" data-reviews>
 	            <div class="space-y-8" data-reviews-list>
-	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
-	                "Нужно было изготовить 800 женских свитеров к осеннему сезону. LOGUSH сработали безупречно: вязка идеальная, размеры точь-в-точь по лекалам, сроки выдержаны день в день. Цена оказалась на 20% выгоднее, чем у других производств. Брендированная упаковка — вообще огонь!"
-	                <footer class="mt-4 text-black font-semibold">
-	                    Анна Соколова
-	                    <span class="block font-normal text-gray-600">Основатель бренда WOOL&CO</span>
-	                </footer>
-	            </blockquote>
-	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
-	                "Третий сезон работаем с Логуш — и каждый раз убеждаемся, что выбрали правильно. Ребята вникают в каждую мелочь, помогают дорабатывать лекала, предлагают технические решения. Произвели уже больше 15 000 изделий, брак — единичные случаи. Это партнеры, на которых можно положиться."
-	                <footer class="mt-4 text-black font-semibold">
-	                    Михаил Петров
-	                    <span class="block font-normal text-gray-600">Директор по развитию KNIT STORY</span>
-	                </footer>
-	            </blockquote>
-	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
-	                "Запускали детскую линию трикотажа — задача была непростая: многоцветные узоры, размеры от 80 до 140 см, строгие требования к гипоаллергенности. LOGUSH справились блестяще! Профессионализм на каждом этапе, а цены — более чем разумные."
-	                <footer class="mt-4 text-black font-semibold">
-	                    Елена Иванова
-	                    <span class="block font-normal text-gray-600">Создатель бренда SOFT LINE</span>
-	                </footer>
-	            </blockquote>
-	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
-	                "Работаем с ИП Логуш уже второй год. Качество пошива на высоте, сроки всегда соблюдаются. Особенно радует гибкость в работе — всегда идут навстречу и помогают решить любые вопросы."
-	                <footer class="mt-4 text-black font-semibold">
-	                    Дмитрий Волков
-	                    <span class="block font-normal text-gray-600">Владелец сети магазинов TEXTILE PRO</span>
-	                </footer>
-	            </blockquote>
-	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
-	                "Заказывали партию из 1200 толстовок для корпоративного мерча. Результат превзошел ожидания — качество печати отличное, ткань приятная, все размеры точные. Рекомендуем!"
-	                <footer class="mt-4 text-black font-semibold">
-	                    Ольга Морозова
-	                    <span class="block font-normal text-gray-600">Менеджер по закупкам TECH CORP</span>
-	                </footer>
-	            </blockquote>
-	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
-	                "Запрашивали разработку образцов и пошив небольшой капсулы для теста спроса. Команда LOGUSH помогла с подбором пряжи, предложила варианты по посадке и честно предупредила о рисках по некоторым узлам. В итоге получили ровно то качество, которое ожидали, и в сроки."
-	                <footer class="mt-4 text-black font-semibold">
-	                    Мария Кузнецова
-	                    <span class="block font-normal text-gray-600">Продакт-менеджер бренда URBAN KNIT</span>
-	                </footer>
-	            </blockquote>
+              <?php
+                $reviews = is_array($homeBlocks['reviews'] ?? null) ? $homeBlocks['reviews'] : [];
+                if (count($reviews) === 0) {
+                  $reviews = [
+                    ['quote' => 'Нужно было изготовить 800 женских свитеров к осеннему сезону. LOGUSH сработали безупречно: вязка идеальная, размеры точь-в-точь по лекалам, сроки выдержаны день в день. Цена оказалась на 20% выгоднее, чем у других производств. Брендированная упаковка — вообще огонь!', 'name' => 'Анна Соколова', 'meta' => 'Основатель бренда WOOL&CO'],
+                    ['quote' => 'Третий сезон работаем с Логуш — и каждый раз убеждаемся, что выбрали правильно. Ребята вникают в каждую мелочь, помогают дорабатывать лекала, предлагают технические решения. Произвели уже больше 15 000 изделий, брак — единичные случаи. Это партнеры, на которых можно положиться.', 'name' => 'Михаил Петров', 'meta' => 'Директор по развитию KNIT STORY'],
+                    ['quote' => 'Запускали детскую линию трикотажа — задача была непростая: многоцветные узоры, размеры от 80 до 140 см, строгие требования к гипоаллергенности. LOGUSH справились блестяще! Профессионализм на каждом этапе, а цены — более чем разумные.', 'name' => 'Елена Иванова', 'meta' => 'Создатель бренда SOFT LINE'],
+                    ['quote' => 'Работаем с ИП Логуш уже второй год. Качество пошива на высоте, сроки всегда соблюдаются. Особенно радует гибкость в работе — всегда идут навстречу и помогают решить любые вопросы.', 'name' => 'Дмитрий Волков', 'meta' => 'Владелец сети магазинов TEXTILE PRO'],
+                    ['quote' => 'Заказывали партию из 1200 толстовок для корпоративного мерча. Результат превзошел ожидания — качество печати отличное, ткань приятная, все размеры точные. Рекомендуем!', 'name' => 'Ольга Морозова', 'meta' => 'Менеджер по закупкам TECH CORP'],
+                    ['quote' => 'Запрашивали разработку образцов и пошив небольшой капсулы для теста спроса. Команда LOGUSH помогла с подбором пряжи, предложила варианты по посадке и честно предупредила о рисках по некоторым узлам. В итоге получили ровно то качество, которое ожидали, и в сроки.', 'name' => 'Мария Кузнецова', 'meta' => 'Продакт-менеджер бренда URBAN KNIT'],
+                  ];
+                }
+              ?>
+              <?php foreach ($reviews as $r): ?>
+                <?php if (!is_array($r)) continue; ?>
+                <?php
+                  $quote = trim((string) ($r['quote'] ?? ''));
+                  $name = trim((string) ($r['name'] ?? ''));
+                  $meta = trim((string) ($r['meta'] ?? ''));
+                  if ($quote === '') continue;
+                ?>
+                <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
+                  "<?= $e($quote) ?>"
+                  <?php if ($name !== '' || $meta !== ''): ?>
+                    <footer class="mt-4 text-black font-semibold">
+                      <?= $e($name !== '' ? $name : '—') ?>
+                      <?php if ($meta !== ''): ?>
+                        <span class="block font-normal text-gray-600"><?= $e($meta) ?></span>
+                      <?php endif; ?>
+                    </footer>
+                  <?php endif; ?>
+                </blockquote>
+              <?php endforeach; ?>
 	            </div>
 	            <div class="pt-4">
 	                <button type="button" id="home-show-all-reviews" data-action="show-all-reviews" class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 h-12 px-4 text-base w-auto min-w-[180px] bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md">
@@ -206,22 +197,29 @@ if (count($slider2) === 0) {
         </h2>
         <div class="col-start-1 col-end-7 md:col-start-1 md:col-end-7 lg:col-start-7 lg:col-end-13">
             <?php
-            $faqs = [
-                ['q' => 'С какого объема можно начать сотрудничество?', 'a' => 'Для вязаных изделий стартовая партия — от 300 единиц, для швейных — от 500. Такой подход гарантирует выгодную цену и стабильное качество.'],
-                ['q' => 'За какой срок вы изготовите мою коллекцию?', 'a' => 'Обычно 14-21 рабочий день — точные сроки зависят от технической сложности моделей и размера партии.'],
-                ['q' => 'Какие ткани и пряжу вы используете?', 'a' => 'Шерсть мериноса, кашемир, альпака, хлопок, лён и современные синтетические волокна. Можем работать с вашими материалами.'],
-            ];
+            $faqs = is_array($homeBlocks['faqs'] ?? null) ? $homeBlocks['faqs'] : [];
+            if (count($faqs) === 0) {
+                $faqs = [
+                    ['question' => 'С какого объема можно начать сотрудничество?', 'answer' => 'Для вязаных изделий стартовая партия — от 300 единиц, для швейных — от 500. Такой подход гарантирует выгодную цену и стабильное качество.'],
+                    ['question' => 'За какой срок вы изготовите мою коллекцию?', 'answer' => 'Обычно 14-21 рабочий день — точные сроки зависят от технической сложности моделей и размера партии.'],
+                    ['question' => 'Какие ткани и пряжу вы используете?', 'answer' => 'Шерсть мериноса, кашемир, альпака, хлопок, лён и современные синтетические волокна. Можем работать с вашими материалами.'],
+                ];
+            }
             foreach ($faqs as $faq):
+              if (!is_array($faq)) continue;
+              $q = trim((string) ($faq['question'] ?? ''));
+              $a = trim((string) ($faq['answer'] ?? ''));
+              if ($q === '' || $a === '') continue;
             ?>
             <div class="border-b border-gray-500 py-4 last:border-b-0">
                 <button class="flex justify-between w-full text-left text-lg text-black hover:text-gray-700 transition-colors" data-faq-button>
-                    <?= $e($faq['q']) ?>
+                    <?= $e($q) ?>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 text-current flex-shrink-0 ml-4" style="transition: transform 0.3s ease;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
                     </svg>
                 </button>
                 <div style="max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; display: none;" class="text-base leading-7 text-gray-600">
-                    <div class="mt-4"><?= $e($faq['a']) ?></div>
+                    <div class="mt-4"><?= $e($a) ?></div>
                 </div>
             </div>
             <?php endforeach; ?>
