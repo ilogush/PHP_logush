@@ -228,6 +228,12 @@ final class PageController
 
     private function renderContentPage(string $path): void
     {
+        // Only the home page is rendered dynamically. Other public pages use SSR snapshots.
+        if ($path !== '/') {
+            $this->renderNotFound();
+            return;
+        }
+
         $settings = SettingsDefaults::merge($this->store->read('settings'));
 
         $ver = trim($this->store->settingsUpdatedAt());
@@ -238,11 +244,7 @@ final class PageController
         $cacheKey = md5($path);
         // Include code/template version so deploys invalidate cache even if settings didn't change.
         $codeVer = (string) (@filemtime(__FILE__) ?: 1);
-        $tpl = match ($path) {
-            '/' => dirname(__DIR__) . '/views/pages/home-new.php',
-            '/contact' => dirname(__DIR__) . '/views/pages/contact.php',
-            default => dirname(__DIR__) . '/views/pages/content.php',
-        };
+        $tpl = dirname(__DIR__) . '/views/pages/home-new.php';
         $tplVer = (string) (@filemtime($tpl) ?: 1);
 
         $safeVer = preg_replace('/[^0-9A-Za-z_-]+/', '-', $ver) . '-' . $codeVer . '-' . $tplVer;
@@ -254,49 +256,16 @@ final class PageController
             return;
         }
 
-        $seoKey = match ($path) {
-            '/' => 'home',
-            '/about' => 'about',
-            '/services' => 'services',
-            '/vacancies' => 'vacancies',
-            default => null,
-        };
-
-        $seo = ($seoKey !== null && is_array($settings['seo'][$seoKey] ?? null)) ? $settings['seo'][$seoKey] : [];
+        $seo = is_array($settings['seo']['home'] ?? null) ? $settings['seo']['home'] : [];
         $title = (string) (($seo['title'] ?? '') !== '' ? $seo['title'] : 'ИП Логуш');
         $metaDescription = (string) ($seo['description'] ?? '');
         $metaKeywords = (string) ($seo['keywords'] ?? '');
 
-        if ($path === '/') {
-            $productsAll = $this->store->read('products');
-            $products = array_slice(is_array($productsAll) ? $productsAll : [], 0, 9);
-            $html = $this->buildSiteHtml($title, 'pages/home-new.php', [
-                'settings' => $settings,
-                'products' => $products,
-            ], $metaDescription, $metaKeywords, $this->canonicalUrl($path), $settings);
-            $this->writePageCache($cacheDir, $cacheKey, $safeVer, $html);
-            header('Content-Type: text/html; charset=utf-8');
-            echo $html;
-            return;
-        }
-
-        if ($path === '/contact') {
-            $html = $this->buildSiteHtml('Контакты', 'pages/contact.php', [
-                'settings' => $settings,
-            ], $metaDescription, $metaKeywords, $this->canonicalUrl($path), $settings);
-            $this->writePageCache($cacheDir, $cacheKey, $safeVer, $html);
-            header('Content-Type: text/html; charset=utf-8');
-            echo $html;
-            return;
-        }
-
-        $pageKey = ltrim($path, '/');
-        $page = is_array($settings['pageContent'][$pageKey] ?? null) ? $settings['pageContent'][$pageKey] : [];
-        $pageTitle = (string) (($page['title'] ?? '') !== '' ? $page['title'] : $title);
-
-        $html = $this->buildSiteHtml($pageTitle, 'pages/content.php', [
+        $productsAll = $this->store->read('products');
+        $products = array_slice(is_array($productsAll) ? $productsAll : [], 0, 9);
+        $html = $this->buildSiteHtml($title, 'pages/home-new.php', [
             'settings' => $settings,
-            'page' => $page,
+            'products' => $products,
         ], $metaDescription, $metaKeywords, $this->canonicalUrl($path), $settings);
         $this->writePageCache($cacheDir, $cacheKey, $safeVer, $html);
         header('Content-Type: text/html; charset=utf-8');
