@@ -21,7 +21,7 @@ final class App
 
         $this->auth = new Auth($this->store);
         $this->view = new View($this->baseDir . '/views');
-        $this->snapshots = new SnapshotRenderer($this->baseDir);
+        $this->snapshots = new SnapshotRenderer($this->baseDir, $this->store);
         // Controllers are now lazy-loaded
     }
 

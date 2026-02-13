@@ -7,6 +7,15 @@ $hero1 = (string) ($home['heroParagraph1'] ?? 'Мы — надежный про�
 $hero2 = (string) ($home['heroParagraph2'] ?? 'Команда из 100+ специалистов выпускает до 10 000 изделий ежемесячно. Швейный цех в Рославле, вязальное производство в Смоленске.');
 $hero3 = (string) ($home['heroParagraph3'] ?? 'Полный цикл — от разработки лекал до отгрузки готовой продукции. Помогаем оптовым компаниям и федеральным сетям реализовывать амбициозные проекты.');
 $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
+
+$slider1 = is_array($settings['slider1Images'] ?? null) ? $settings['slider1Images'] : [];
+$slider2 = is_array($settings['slider2Images'] ?? null) ? $settings['slider2Images'] : [];
+if (count($slider1) === 0) {
+    $slider1 = ['/images/logush_slide_1.jpg', '/images/logush_slide_2.jpg'];
+}
+if (count($slider2) === 0) {
+    $slider2 = ['/images/logush_slide_3.jpg'];
+}
 ?>
 
 <article class="font-sans bg-white text-black">
@@ -37,12 +46,12 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
     <section id="slider-section" class="relative w-full" style="height:200vh" aria-label="Галерея производства">
         <div class="sticky top-0 h-screen overflow-hidden">
             <div class="flex h-full transition-transform duration-100 ease-out" id="slider-container">
-                <div class="relative h-full flex-shrink-0" style="width:100vw">
-                    <img src="/images/logush_slide_1.jpg" alt="Швейное производство ИП Логуш" class="object-cover w-full h-full" loading="eager">
-                </div>
-                <div class="relative h-full flex-shrink-0" style="width:100vw">
-                    <img src="/images/logush_slide_2.jpg" alt="Трикотажное производство" class="object-cover w-full h-full" loading="lazy">
-                </div>
+                <?php foreach ($slider1 as $idx => $img): ?>
+                    <?php $u = trim((string) $img); if ($u === '') continue; ?>
+                    <div class="relative h-full flex-shrink-0" style="width:100vw">
+                        <img src="<?= $e($u) ?>" alt="Швейное производство ИП Логуш" class="object-cover w-full h-full" loading="<?= $idx === 0 ? 'eager' : 'lazy' ?>">
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
@@ -74,56 +83,57 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
         </div>
     </section>
 
-    <!-- Products Section -->
-    <?php if (count($products) > 0): ?>
-    <section class="py-12 md:py-16 lg:py-20">
-        <h2 class="text-2xl md:text-3xl font-bold text-black mb-8">Популярные товары</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <?php foreach ($products as $product): ?>
-                <?php if (!is_array($product)) continue; ?>
-                <?php
-                    $productId = (string) ($product['id'] ?? '');
-                    $name = (string) ($product['name'] ?? 'Товар');
-                    $price = (float) ($product['price'] ?? 0);
-                    $category = (string) ($product['category'] ?? '');
-                    $img = (string) (($product['images'][0] ?? '/images/product-placeholder.svg'));
-                ?>
-                <article class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                    <a href="/product/<?= rawurlencode($productId) ?>" class="block aspect-square overflow-hidden">
-                        <img
-                          src="<?= $e($img) ?>"
-                          <?php if (str_starts_with($img, '/api/upload?key=')): ?>
-                            srcset="<?= $e($img) ?>&w=480 480w, <?= $e($img) ?>&w=1200 1200w"
-                            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                          <?php endif; ?>
-                          alt="<?= $e($name) ?>"
-                          class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                          decoding="async"
-                        >
-                    </a>
-                    <div class="p-4">
-                        <?php if ($category): ?>
-                        <span class="text-xs text-gray-500 uppercase tracking-wide"><?= $e($category) ?></span>
-                        <?php endif; ?>
-                        <h3 class="text-lg font-semibold text-black mt-2 mb-3">
-                            <a href="/product/<?= rawurlencode($productId) ?>" class="hover:text-gray-600"><?= $e($name) ?></a>
-                        </h3>
-                        <div class="flex items-center justify-between">
-                            <strong class="text-xl text-black"><?= $e(number_format($price, 0, '.', ' ')) ?> ₽</strong>
-                            <a href="/product/<?= rawurlencode($productId) ?>" class="text-sm text-gray-600 hover:text-black inline-flex items-center gap-1">
-                                Подробнее
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-4 h-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"></path>
-                                </svg>
-                            </a>
-                        </div>
+    <!-- Slider Section 2 (before knitting) -->
+    <section id="slider-section-2" class="relative w-full" style="height:200vh" aria-label="Галерея вязального производства">
+        <div class="sticky top-0 h-screen overflow-hidden">
+            <div class="flex h-full transition-transform duration-100 ease-out" id="slider-container-2">
+                <?php foreach ($slider2 as $idx => $img): ?>
+                    <?php $u = trim((string) $img); if ($u === '') continue; ?>
+                    <div class="relative h-full flex-shrink-0" style="width:100vw">
+                        <img src="<?= $e($u) ?>" alt="Вязальное производство ИП Логуш" class="object-cover w-full h-full" loading="<?= $idx === 0 ? 'eager' : 'lazy' ?>">
                     </div>
-                </article>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
     </section>
-    <?php endif; ?>
+
+    <!-- Knitting Production Section -->
+    <?php
+      $homeBlocks = is_array($settings['pageBlocks']['home'] ?? null) ? $settings['pageBlocks']['home'] : [];
+      $knit = is_array($homeBlocks['knittingProduction'] ?? null) ? $homeBlocks['knittingProduction'] : [];
+      $knitId = (string) ($knit['id'] ?? 'knitting-production');
+      $knitTitle = (string) ($knit['title'] ?? 'Вязальное');
+      $knitSubtitle = (string) ($knit['subtitle'] ?? 'производство');
+      $knitCaps = is_array($knit['capabilities'] ?? null) ? $knit['capabilities'] : [];
+      $knitParas = is_array($knit['paragraphs'] ?? null) ? $knit['paragraphs'] : [];
+      $knitP1 = (string) ($knitParas[0] ?? '');
+      $knitP2 = (string) ($knitParas[1] ?? '');
+    ?>
+    <section id="<?= $e($knitId) ?>" aria-label="Вязальное производство" class="py-12 md:py-16 lg:py-20 border-b border-gray-500 md:grid md:grid-cols-6 lg:grid-cols-12 items-start">
+        <h2 class="tracking-tight text-xl leading-7 mb-4 md:mb-6 md:col-start-1 md:col-end-7 md:text-3xl md:leading-9 lg:col-start-1 lg:col-end-6 font-semibold">
+            <span class="text-black block"><?= $e($knitTitle) ?></span>
+            <span class="text-gray-600 block"><?= $e($knitSubtitle) ?></span>
+        </h2>
+        <div class="text-sm leading-4 hidden lg:col-start-1 lg:col-end-3 lg:block">
+            <?php if (count($knitCaps) > 0): ?>
+              <span class="block mb-4 font-semibold text-black">Возможности</span>
+              <ul class="list-disc list-inside text-gray-600">
+                <?php foreach (array_slice($knitCaps, 0, 8) as $cap): ?>
+                  <?php $capStr = trim((string) $cap); if ($capStr === '') continue; ?>
+                  <li><?= $e($capStr) ?></li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
+        </div>
+        <div class="col-start-1 col-end-7 lg:col-start-7 lg:col-end-13">
+            <?php if ($knitP1 !== ''): ?>
+              <p class="text-base leading-7 tracking-tight mb-8 text-black"><?= $e($knitP1) ?></p>
+            <?php endif; ?>
+            <?php if ($knitP2 !== ''): ?>
+              <p class="text-base leading-7 tracking-tight mb-8 text-black"><?= $e($knitP2) ?></p>
+            <?php endif; ?>
+        </div>
+    </section>
 
 	    <!-- Reviews Section -->
 	    <section aria-label="Отзывы наших клиентов" class="py-12 md:py-16 lg:py-20 border-b border-gray-500 md:grid md:grid-cols-6 lg:grid-cols-12 items-start">
@@ -234,6 +244,29 @@ window.addEventListener('scroll', function() {
         const container = document.getElementById('slider-container');
         if (container) {
             container.style.transform = `translateX(-${scrollProgress * 50}%)`;
+        }
+    }
+});
+</script>
+
+<script>
+// Parallax slider effect (2nd slider)
+window.addEventListener('scroll', function() {
+    const section = document.getElementById('slider-section-2');
+    if (!section) return;
+    
+    const rect = section.getBoundingClientRect();
+    const sectionHeight = section.offsetHeight;
+    const viewportHeight = window.innerHeight;
+    
+    if (rect.top < viewportHeight && rect.bottom > 0) {
+        const scrollProgress = Math.max(0, Math.min(1, (viewportHeight - rect.top) / (sectionHeight + viewportHeight)));
+        const container = document.getElementById('slider-container-2');
+        if (container) {
+            // Support 1..N slides.
+            const slides = container.children ? container.children.length : 1;
+            const maxShift = Math.max(0, (slides - 1) * 100);
+            container.style.transform = `translateX(-${scrollProgress * maxShift}%)`;
         }
     }
 });

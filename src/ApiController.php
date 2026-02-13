@@ -683,7 +683,22 @@ final class ApiController
         $normalized = SettingsDefaults::merge(is_array($payload) ? $payload : []);
 
         $this->store->write('settings', $normalized);
+        $this->clearPublicPageCache();
         $this->json($normalized);
+    }
+
+    private function clearPublicPageCache(): void
+    {
+        $dir = rtrim($this->baseDir, '/') . '/storage/cache/pages';
+        if (!is_dir($dir)) {
+            return;
+        }
+        $files = glob($dir . '/*.html') ?: [];
+        foreach ($files as $file) {
+            if (is_string($file)) {
+                @unlink($file);
+            }
+        }
     }
 
     private function users(string $method): void

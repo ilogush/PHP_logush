@@ -70,6 +70,18 @@ final class DataStore
         return $this->pdo;
     }
 
+    public function settingsUpdatedAt(): string
+    {
+        $this->assertDbReady();
+        try {
+            $stmt = $this->pdo->query('SELECT updated_at FROM settings WHERE id = 1');
+            $row = $stmt ? $stmt->fetch() : null;
+            return is_array($row) ? trim((string) ($row['updated_at'] ?? '')) : '';
+        } catch (Throwable) {
+            return '';
+        }
+    }
+
     public function usesDatabase(): bool
     {
         return $this->isDbReady();

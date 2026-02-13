@@ -32,10 +32,12 @@ final class SnapshotRenderer
     private static array $cache = [];
 
     private string $ssrDir;
+    private ?DataStore $store;
 
-    public function __construct(string $baseDir)
+    public function __construct(string $baseDir, ?DataStore $store = null)
     {
         $this->ssrDir = rtrim($baseDir, '/') . '/storage/ssr';
+        $this->store = $store;
     }
 
     public function render(string $path): bool
@@ -173,6 +175,47 @@ final class SnapshotRenderer
                         . '</div>'
                         . '</div>';
                 }, $html) ?? $html;
+            }
+        }
+
+        // Keep contacts up-to-date even on snapshot pages.
+        return $this->injectContactsFromSettings($html);
+    }
+
+    private function injectContactsFromSettings(string $html): string
+    {
+        if ($this->store === null) {
+            return $html;
+        }
+
+        $settings = SettingsDefaults::merge($this->store->read('settings'));
+        $telegram = trim((string) ($settings['telegram'] ?? ''));
+        $whatsapp = trim((string) ($settings['whatsapp'] ?? ''));
+        $phone = trim((string) ($settings['phone'] ?? ''));
+        $email = trim((string) ($settings['email'] ?? ''));
+
+        if ($telegram !== '') {
+            $html = preg_replace('~href=\"https?://t\\.me/[^\\\"]*\"~i', 'href=\"' . htmlspecialchars($telegram, ENT_QUOTES, 'UTF-8') . '\"', $html) ?? $html;
+        }
+        if ($whatsapp !== '') {
+            $html = preg_replace('~href=\"https?://wa\\.me/[^\\\"]*\"~i', 'href=\"' . htmlspecialchars($whatsapp, ENT_QUOTES, 'UTF-8') . '\"', $html) ?? $html;
+        }
+
+        $defaults = SettingsDefaults::defaults();
+        $defEmail = trim((string) ($defaults['email'] ?? ''));
+        $defPhone = trim((string) ($defaults['phone'] ?? ''));
+
+        if ($email !== '' && $defEmail !== '' && $defEmail !== $email) {
+            $html = str_replace($defEmail, $email, $html);
+        }
+
+        if ($phone !== '' && $defPhone !== '' && $defPhone !== $phone) {
+            $html = str_replace($defPhone, $phone, $html);
+
+            $compactDef = preg_replace('/[^0-9+]/', '', $defPhone);
+            $compactNew = preg_replace('/[^0-9+]/', '', $phone);
+            if (is_string($compactDef) && is_string($compactNew) && $compactDef !== '' && $compactNew !== '' && $compactDef !== $compactNew) {
+                $html = str_replace($compactDef, $compactNew, $html);
             }
         }
 

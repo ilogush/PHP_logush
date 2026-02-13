@@ -18,6 +18,12 @@ final class PageController
     {
         $isReadRequest = $method === 'GET' || $method === 'HEAD';
 
+        // Public content pages should be dynamic so settings changes in admin reflect immediately.
+        if ($isReadRequest && in_array($path, ['/', '/about', '/services', '/vacancies', '/contact'], true)) {
+            $this->renderContentPage($path);
+            return;
+        }
+
         // /sale must be dynamic (products come from admin/DB). Snapshot is static.
         if ($isReadRequest && $path === '/sale') {
             $this->renderSale();
@@ -217,6 +223,140 @@ final class PageController
             'items' => $items,
             'total' => $total,
         ]);
+    }
+
+    private function renderContentPage(string $path): void
+    {
+        $settings = SettingsDefaults::merge($this->store->read('settings'));
+
+        $ver = trim($this->store->settingsUpdatedAt());
+        if ($ver === '') {
+            $ver = 'v1';
+        }
+        $cacheDir = dirname(__DIR__) . '/storage/cache/pages';
+        $cacheKey = md5($path);
+        // Include code/template version so deploys invalidate cache even if settings didn't change.
+        $codeVer = (string) (@filemtime(__FILE__) ?: 1);
+        $tpl = match ($path) {
+            '/' => dirname(__DIR__) . '/views/pages/home-new.php',
+            '/contact' => dirname(__DIR__) . '/views/pages/contact.php',
+            default => dirname(__DIR__) . '/views/pages/content.php',
+        };
+        $tplVer = (string) (@filemtime($tpl) ?: 1);
+
+        $safeVer = preg_replace('/[^0-9A-Za-z_-]+/', '-', $ver) . '-' . $codeVer . '-' . $tplVer;
+        $cachePath = $cacheDir . '/' . $cacheKey . '.' . $safeVer . '.html';
+
+        if (is_file($cachePath)) {
+            header('Content-Type: text/html; charset=utf-8');
+            readfile($cachePath);
+            return;
+        }
+
+        $seoKey = match ($path) {
+            '/' => 'home',
+            '/about' => 'about',
+            '/services' => 'services',
+            '/vacancies' => 'vacancies',
+            default => null,
+        };
+
+        $seo = ($seoKey !== null && is_array($settings['seo'][$seoKey] ?? null)) ? $settings['seo'][$seoKey] : [];
+        $title = (string) (($seo['title'] ?? '') !== '' ? $seo['title'] : 'ИП Логуш');
+        $metaDescription = (string) ($seo['description'] ?? '');
+        $metaKeywords = (string) ($seo['keywords'] ?? '');
+
+        if ($path === '/') {
+            $productsAll = $this->store->read('products');
+            $products = array_slice(is_array($productsAll) ? $productsAll : [], 0, 9);
+            $html = $this->buildSiteHtml($title, 'pages/home-new.php', [
+                'settings' => $settings,
+                'products' => $products,
+            ], $metaDescription, $metaKeywords, $this->canonicalUrl($path), $settings);
+            $this->writePageCache($cacheDir, $cacheKey, $safeVer, $html);
+            header('Content-Type: text/html; charset=utf-8');
+            echo $html;
+            return;
+        }
+
+        if ($path === '/contact') {
+            $html = $this->buildSiteHtml('Контакты', 'pages/contact.php', [
+                'settings' => $settings,
+            ], $metaDescription, $metaKeywords, $this->canonicalUrl($path), $settings);
+            $this->writePageCache($cacheDir, $cacheKey, $safeVer, $html);
+            header('Content-Type: text/html; charset=utf-8');
+            echo $html;
+            return;
+        }
+
+        $pageKey = ltrim($path, '/');
+        $page = is_array($settings['pageContent'][$pageKey] ?? null) ? $settings['pageContent'][$pageKey] : [];
+        $pageTitle = (string) (($page['title'] ?? '') !== '' ? $page['title'] : $title);
+
+        $html = $this->buildSiteHtml($pageTitle, 'pages/content.php', [
+            'settings' => $settings,
+            'page' => $page,
+        ], $metaDescription, $metaKeywords, $this->canonicalUrl($path), $settings);
+        $this->writePageCache($cacheDir, $cacheKey, $safeVer, $html);
+        header('Content-Type: text/html; charset=utf-8');
+        echo $html;
+    }
+
+    private function buildSiteHtml(
+        string $title,
+        string $template,
+        array $vars,
+        string $metaDescription,
+        string $metaKeywords,
+        ?string $canonicalUrl,
+        array $settings
+    ): string
+    {
+        $content = $this->view->render($template, $vars);
+        return $this->view->render('layout-new.php', [
+            'title' => $title,
+            'content' => $content,
+            'currentPath' => parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH),
+            'authUser' => $this->auth->user(),
+            'settings' => $settings,
+            'metaDescription' => $metaDescription,
+            'metaKeywords' => $metaKeywords,
+            'canonicalUrl' => $canonicalUrl,
+            'ogTitle' => null,
+            'ogDescription' => null,
+            'ogUrl' => null,
+            'ogImage' => null,
+        ]);
+    }
+
+    private function writePageCache(string $cacheDir, string $cacheKey, string $safeVer, string $html): void
+    {
+        if (!is_dir($cacheDir)) {
+            @mkdir($cacheDir, 0775, true);
+        }
+        $path = rtrim($cacheDir, '/') . '/' . $cacheKey . '.' . $safeVer . '.html';
+        @file_put_contents($path, $html);
+
+        $glob = rtrim($cacheDir, '/') . '/' . $cacheKey . '.*.html';
+        $files = glob($glob) ?: [];
+        if (count($files) <= 3) {
+            return;
+        }
+        usort($files, static fn (string $a, string $b): int => filemtime($b) <=> filemtime($a));
+        foreach (array_slice($files, 3) as $old) {
+            @unlink($old);
+        }
+    }
+
+    private function canonicalUrl(string $path): string
+    {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        $baseUrl = rtrim((string) getenv('APP_PUBLIC_URL'), '/');
+        if ($baseUrl === '') {
+            $baseUrl = $scheme . '://' . $host;
+        }
+        return rtrim($baseUrl, '/') . $path;
     }
 
     private function renderQuote(): void
@@ -585,12 +725,14 @@ final class PageController
         ?string $ogImage = null
     ): void
     {
+        $settings = SettingsDefaults::merge($this->store->read('settings'));
         $content = $this->view->render($template, $vars);
         echo $this->view->render('layout-new.php', [
             'title' => $title,
             'content' => $content,
             'currentPath' => parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH),
             'authUser' => $this->auth->user(),
+            'settings' => $settings,
             'metaDescription' => $metaDescription,
             'metaKeywords' => $metaKeywords,
             'canonicalUrl' => $canonicalUrl,
