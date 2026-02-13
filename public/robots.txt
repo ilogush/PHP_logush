@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and cart pages
+Disallow: /admin
+Disallow: /login
+Disallow: /cart
+Disallow: /checkout
+
+# Sitemap
+Sitemap: https://logush.ru/sitemap.xml

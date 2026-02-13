@@ -1,0 +1,12 @@
+.DS_Store
+.env
+storage/data/*
+storage/uploads/*
+storage/php_errors.log
+!storage/data/.gitkeep
+!storage/uploads/.gitkeep
+vendor/
+node_modules/
+.idea/
+.vscode/
+*.log

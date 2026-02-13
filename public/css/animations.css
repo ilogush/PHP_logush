@@ -1,0 +1,283 @@
+/* Анимации для PHP проекта */
+
+/* Базовые состояния для элементов с data-animate */
+[data-animate] {
+    opacity: 0;
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+[data-animate="fade-up"] {
+    transform: translateY(30px);
+}
+
+[data-animate="fade-down"] {
+    transform: translateY(-30px);
+}
+
+[data-animate="fade-left"] {
+    transform: translateX(30px);
+}
+
+[data-animate="fade-right"] {
+    transform: translateX(-30px);
+}
+
+[data-animate="fade"] {
+    transform: none;
+}
+
+[data-animate="scale"] {
+    transform: scale(0.95);
+}
+
+/* Активное состояние */
+[data-animate].animate-in {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+}
+
+/* Плавное появление модальных окон */
+.modal-overlay {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Анимация для карточек товаров */
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Анимация для кнопок */
+.btn-animate {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-animate::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-animate:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-animate:active {
+    transform: scale(0.95);
+}
+
+/* Скелетон загрузки */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 25%,
+        #e0e0e0 50%,
+        #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Плавное появление изображений */
+.img-lazy {
+    opacity: 0;
+    transition: opacity 0.4s ease-in;
+}
+
+.img-lazy.loaded {
+    opacity: 1;
+}
+
+/* Пульсация для важных элементов */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Анимация для уведомлений (toast) */
+.toast-enter {
+    animation: toastSlideIn 0.3s ease-out;
+}
+
+.toast-exit {
+    animation: toastSlideOut 0.3s ease-in;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Анимация для выпадающих меню */
+.dropdown-menu {
+    animation: dropdownSlide 0.2s ease-out;
+    transform-origin: top;
+}
+
+@keyframes dropdownSlide {
+    from {
+        opacity: 0;
+        transform: scaleY(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scaleY(1) translateY(0);
+    }
+}
+
+/* Hover эффекты для ссылок */
+.link-underline {
+    position: relative;
+}
+
+.link-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: currentColor;
+    transition: width 0.3s ease;
+}
+
+.link-underline:hover::after {
+    width: 100%;
+}
+
+/* Анимация для бейджей */
+.badge-bounce {
+    animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Плавная прокрутка */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Анимация для прогресс-баров */
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Эффект параллакса (легкий) */
+.parallax {
+    transition: transform 0.1s ease-out;
+}
+
+/* Анимация вращения для загрузки */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Медиа-запросы для отключения анимаций при необходимости */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

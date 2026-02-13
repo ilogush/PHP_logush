@@ -1,0 +1,9 @@
+<svg width="800" height="1000" viewBox="0 0 800 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1000" fill="#F3F4F6"/>
+  <rect x="165" y="230" width="470" height="470" rx="28" fill="#E5E7EB"/>
+  <path d="M265 590L365 480L445 560L515 500L635 620H265V590Z" fill="#9CA3AF"/>
+  <circle cx="350" cy="360" r="42" fill="#9CA3AF"/>
+  <text x="400" y="760" text-anchor="middle" fill="#6B7280" font-size="38" font-family="Arial, sans-serif">
+    Нет фото
+  </text>
+</svg>
