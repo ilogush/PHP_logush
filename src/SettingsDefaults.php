@@ -134,12 +134,20 @@ final class SettingsDefaults
         if (is_array($defaults)) {
             // List case.
             if (array_keys($defaults) === range(0, count($defaults) - 1)) {
-                if (!is_array($input)) {
+                $inList = is_array($input) ? $input : [];
+                if ($inList === []) {
                     return $defaults;
                 }
+
+                // Allow lists to grow beyond defaults (e.g. reviews/faqs edited in admin).
+                $max = max(count($defaults), count($inList));
                 $out = [];
-                foreach ($defaults as $idx => $defItem) {
-                    $out[$idx] = self::mergePageBlocks($defItem, $input[$idx] ?? null);
+                for ($i = 0; $i < $max; $i++) {
+                    if (array_key_exists($i, $defaults)) {
+                        $out[$i] = self::mergePageBlocks($defaults[$i], $inList[$i] ?? null);
+                    } else {
+                        $out[$i] = self::normalizeFree($inList[$i] ?? null);
+                    }
                 }
                 return $out;
             }
@@ -147,13 +155,33 @@ final class SettingsDefaults
             // Assoc case.
             $in = is_array($input) ? $input : [];
             $out = [];
-            foreach (array_keys($defaults) as $key) {
-                $out[$key] = self::mergePageBlocks($defaults[$key], $in[$key] ?? null);
+            // Preserve unknown keys from input (e.g. new blocks added later).
+            $keys = array_values(array_unique(array_merge(array_keys($defaults), array_keys($in))));
+            foreach ($keys as $key) {
+                if (array_key_exists($key, $defaults)) {
+                    $out[$key] = self::mergePageBlocks($defaults[$key], $in[$key] ?? null);
+                } else {
+                    $out[$key] = self::normalizeFree($in[$key] ?? null);
+                }
             }
             return $out;
         }
 
         return $defaults;
     }
-}
 
+    private static function normalizeFree(mixed $value): mixed
+    {
+        if (is_string($value)) {
+            return trim($value);
+        }
+        if (is_array($value)) {
+            $out = [];
+            foreach ($value as $k => $v) {
+                $out[$k] = self::normalizeFree($v);
+            }
+            return $out;
+        }
+        return $value;
+    }
+}

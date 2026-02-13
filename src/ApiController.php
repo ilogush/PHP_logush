@@ -680,11 +680,49 @@ final class ApiController
         }
 
         $payload = $this->jsonInput();
-        $normalized = SettingsDefaults::merge(is_array($payload) ? $payload : []);
+        $cleanPayload = $this->sanitizeSettingsPayload(is_array($payload) ? $payload : []);
+        $normalized = SettingsDefaults::merge($cleanPayload);
 
         $this->store->write('settings', $normalized);
         $this->clearPublicPageCache();
         $this->json($normalized);
+    }
+
+    private function sanitizeSettingsPayload(array $payload): array
+    {
+        $sanitize = static function (mixed $v) use (&$sanitize): mixed {
+            if (is_string($v)) {
+                // Remove copy/paste artifacts and normalize whitespace.
+                $s = str_replace("\r\n", "\n", $v);
+                $s = str_replace("\r", "\n", $s);
+                $s = str_replace("\xC2\xA0", ' ', $s); // NBSP
+                // Zero-width: U+200B..U+200D and BOM U+FEFF
+                $s = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}]/u', '', $s) ?? $s;
+
+                // Trim each line and drop trailing spaces.
+                $lines = explode("\n", $s);
+                foreach ($lines as $i => $line) {
+                    $lines[$i] = rtrim($line);
+                }
+                $s = implode("\n", $lines);
+
+                // Collapse 3+ newlines to максимум 2 (чтобы не раздувать блоки).
+                $s = preg_replace("/\n{3,}/", "\n\n", $s) ?? $s;
+                return trim($s);
+            }
+
+            if (is_array($v)) {
+                $out = [];
+                foreach ($v as $k => $vv) {
+                    $out[$k] = $sanitize($vv);
+                }
+                return $out;
+            }
+
+            return $v;
+        };
+
+        return is_array($sanitize($payload)) ? $sanitize($payload) : $payload;
     }
 
     private function clearPublicPageCache(): void
