@@ -199,39 +199,11 @@
     }, 30000);
   };
 
-  const showToast = (message, type = "info", duration = 3000) => {
-    const icons = {
-      success:
-        '<svg class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg>',
-      error:
-        '<svg class="w-5 h-5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008v.008H12v-.008Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg>',
-      warning:
-        '<svg class="w-5 h-5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008v.008H12v-.008Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86 1.82 18a1.5 1.5 0 0 0 1.29 2.25h17.78A1.5 1.5 0 0 0 22.18 18L13.71 3.86a1.5 1.5 0 0 0-2.42 0Z"></path></svg>',
-      info:
-        '<svg class="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25h.008v.008H12V8.25Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg>',
-    };
-
-    const root = document.createElement("div");
-    root.className = "fixed bottom-6 right-4 z-50 animate-slide-up sm:right-6";
-    root.innerHTML = `
-      <div class="flex items-center gap-4 px-5 py-4 border border-black bg-black text-white shadow-lg min-w-[300px] max-w-md rounded-none">
-        <div class="flex-shrink-0">${icons[type] || icons.info}</div>
-        <p class="flex-1 text-sm font-medium"></p>
-        <button type="button" class="flex-shrink-0 text-gray-200 hover:text-white transition-colors" aria-label="Закрыть">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-    `;
-    const p = root.querySelector("p");
-    if (p) p.textContent = String(message || "");
-    const closeBtn = root.querySelector("button");
-    const remove = () => root.remove();
-    if (closeBtn) closeBtn.addEventListener("click", remove);
-    document.body.appendChild(root);
-    if (duration > 0) window.setTimeout(remove, duration);
-  };
+	  const showToast = (message, type = "info", duration = 3000) => {
+	    if (typeof window.showToast === "function") {
+	      window.showToast(message, type, { duration });
+	    }
+	  };
 
   const showConfirm = ({ title, message, confirmText = "Удалить" }) => {
     return new Promise((resolve) => {
@@ -490,25 +462,36 @@
     });
   };
 
-  const initProductDelete = () => {
-    qsa("[data-delete-product-id]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-delete-product-id") || "";
-        if (!id) return;
-        const ok = window.confirm("Удалить товар? Это действие нельзя отменить.");
-        if (!ok) return;
-        try {
-          const res = await fetch(`/api/products/${encodeURIComponent(id)}`, {
-            method: "POST",
-            headers: { "X-HTTP-Method-Override": "DELETE" },
-          });
-          if (res.ok) {
-            window.location.reload();
-          } else {
-            showToast("Ошибка удаления товара", "error");
-          }
-        } catch {
-          showToast("Ошибка удаления товара", "error");
+	  const initProductDelete = () => {
+	    qsa("[data-delete-product-id]").forEach((btn) => {
+	      btn.addEventListener("click", async () => {
+	        const id = btn.getAttribute("data-delete-product-id") || "";
+	        if (!id) return;
+	        const ok = await showConfirm({
+	          title: "Удалить товар?",
+	          message: "Это действие нельзя отменить. Товар будет удален навсегда.",
+	          confirmText: "Удалить",
+	        });
+	        if (!ok) return;
+	        try {
+	          const res = await fetch(`/api/products/${encodeURIComponent(id)}`, {
+	            method: "POST",
+	            headers: { "X-HTTP-Method-Override": "DELETE" },
+	          });
+	          if (res.ok) {
+	            showToast("Удалено", "success");
+	            window.setTimeout(() => {
+	              if (window.location.pathname.startsWith("/admin/products/")) {
+	                window.location.href = "/admin/products";
+	              } else {
+	                window.location.reload();
+	              }
+	            }, 300);
+	          } else {
+	            showToast("Ошибка удаления товара", "error");
+	          }
+	        } catch {
+	          showToast("Ошибка удаления товара", "error");
         }
       });
     });

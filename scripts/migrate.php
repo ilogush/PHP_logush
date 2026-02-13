@@ -2,21 +2,14 @@
 
 declare(strict_types=1);
 
+// Run DB migrations without serving HTTP.
+// Intended for shared hosting deploys where you want to avoid running migrations during requests.
+
+require __DIR__ . '/../src/bootstrap.php';
+
 $baseDir = dirname(__DIR__);
-require $baseDir . '/src/bootstrap.php';
+$store = new Logush\DataStore($baseDir);
 
-$pdo = Logush\Database::connectFromEnv();
-if (!$pdo) {
-    fwrite(STDERR, "DB не настроена. Укажите DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD в .env\n");
-    exit(1);
-}
+echo "DB schema version: " . Logush\DatabaseMigrator::SCHEMA_VERSION . PHP_EOL;
+echo "OK\n";
 
-Logush\DatabaseMigrator::migrate($pdo);
-
-$seed = in_array('--seed', $argv, true);
-if ($seed) {
-    $store = new Logush\DataStore($baseDir);
-    $store->seed();
-}
-
-fwrite(STDOUT, "Миграция завершена" . ($seed ? " + сиды" : "") . "\n");

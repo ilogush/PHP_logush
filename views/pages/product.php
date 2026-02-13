@@ -43,24 +43,40 @@ $normalizeImage = static function(string $url): string {
 
 $normalizedImages = array_map($normalizeImage, $images);
 $hasImages = !empty($normalizedImages) && !empty($normalizedImages[0]);
+
+$imgSrcset = static function (string $url): string {
+    if (!str_starts_with($url, '/api/upload?key=')) {
+        return '';
+    }
+    $sep = str_contains($url, '?') ? '&' : '?';
+    return $url . $sep . 'w=480 480w, ' . $url . $sep . 'w=1200 1200w';
+};
 ?>
 
 <div class="min-h-screen bg-white pb-16">
     <!-- Breadcrumbs -->
     <div class="text-sm text-gray-600">
         <a href="/" class="hover:text-black">Главная</a>
-        <span class="mx-4">/</span>
+        <span class="mx-2">/</span>
         <a href="/sale" class="hover:text-black">Магазин</a>
-        <span class="mx-4">/</span>
+        <span class="mx-2">/</span>
         <span class="text-black"><?= $name ?></span>
     </div>
 
-    <div class="grid md:grid-cols-2 gap-12 py-8">
+	    <div class="grid md:grid-cols-2 gap-8 py-8">
         <!-- Image Gallery -->
         <div>
             <div id="main-image" class="mb-4 bg-gray-100 aspect-[3/4] overflow-hidden">
                 <?php if ($hasImages): ?>
-                    <img src="<?= $e($normalizedImages[0]) ?>" alt="<?= $name ?>" class="w-full h-full object-cover">
+                    <img
+                      src="<?= $e($normalizedImages[0]) ?>"
+                      srcset="<?= $e($imgSrcset($normalizedImages[0])) ?>"
+                      sizes="(min-width: 768px) 50vw, 100vw"
+                      alt="<?= $name ?>"
+                      class="w-full h-full object-cover"
+                      loading="eager"
+                      decoding="async"
+                    >
                 <?php else: ?>
                     <div class="flex h-full w-full items-center justify-center text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-20 w-20">
@@ -77,7 +93,15 @@ $hasImages = !empty($normalizedImages) && !empty($normalizedImages[0]);
                             class="thumbnail bg-gray-100 aspect-square overflow-hidden <?= $idx === 0 ? 'ring-2 ring-black' : '' ?>"
                             data-index="<?= $idx ?>"
                         >
-                            <img src="<?= $e($image) ?>" alt="<?= $name ?> <?= $idx + 1 ?>" class="w-full h-full object-cover">
+                            <img
+                              src="<?= $e($image) ?>"
+                              srcset="<?= $e($imgSrcset($image)) ?>"
+                              sizes="(min-width: 768px) 10vw, 25vw"
+                              alt="<?= $name ?> <?= $idx + 1 ?>"
+                              class="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            >
                         </button>
                     <?php endforeach; ?>
                 </div>
@@ -99,18 +123,18 @@ $hasImages = !empty($normalizedImages) && !empty($normalizedImages[0]);
                 <?php if (!empty($colors)): ?>
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-black uppercase tracking-wider mb-3">Цвет</label>
-                        <div class="flex flex-wrap gap-3">
-                            <?php foreach ($colors as $color): ?>
-                                <button
-                                    type="button"
-                                    onclick="selectColor('<?= $e($color) ?>')"
-                                    class="color-btn px-4 py-2 text-sm border transition-colors bg-white text-black border-black hover:bg-black hover:text-white"
-                                    data-color="<?= $e($color) ?>"
-                                >
-                                    <?= $e($color) ?>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
+	                        <div class="flex flex-wrap gap-3">
+	                            <?php foreach ($colors as $color): ?>
+	                                <button
+	                                    type="button"
+	                                    onclick="selectColor('<?= $e($color) ?>')"
+	                                    class="color-btn h-12 min-w-[120px] px-6 text-sm border border-black transition-colors bg-white text-black hover:bg-black hover:text-white inline-flex items-center justify-center"
+	                                    data-color="<?= $e($color) ?>"
+	                                >
+	                                    <?= $e($color) ?>
+	                                </button>
+	                            <?php endforeach; ?>
+	                        </div>
                         <input type="hidden" name="color" id="selected-color" required>
                     </div>
                 <?php endif; ?>
@@ -122,18 +146,18 @@ $hasImages = !empty($normalizedImages) && !empty($normalizedImages[0]);
                             <label class="block text-sm font-medium text-black uppercase tracking-wider">Размер</label>
                             <a href="/size-table" class="text-xs text-gray-600 hover:text-black underline">Таблица размеров</a>
                         </div>
-                        <div class="flex flex-wrap gap-3">
-                            <?php foreach ($sizes as $size): ?>
-                                <button
-                                    type="button"
-                                    onclick="selectSize('<?= $e($size) ?>')"
-                                    class="size-btn px-4 py-2 text-sm border transition-colors bg-white text-black border-black hover:bg-black hover:text-white"
-                                    data-size="<?= $e($size) ?>"
-                                >
-                                    <?= $e($size) ?>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
+	                        <div class="flex flex-wrap gap-3">
+	                            <?php foreach ($sizes as $size): ?>
+	                                <button
+	                                    type="button"
+	                                    onclick="selectSize('<?= $e($size) ?>')"
+	                                    class="size-btn h-12 min-w-[160px] px-6 text-sm border border-black transition-colors bg-white text-black hover:bg-black hover:text-white inline-flex items-center justify-center"
+	                                    data-size="<?= $e($size) ?>"
+	                                >
+	                                    <?= $e($size) ?>
+	                                </button>
+	                            <?php endforeach; ?>
+	                        </div>
                         <input type="hidden" name="size" id="selected-size" required>
                     </div>
                 <?php endif; ?>
@@ -165,7 +189,7 @@ $hasImages = !empty($normalizedImages) && !empty($normalizedImages[0]);
                 <div class="flex gap-4 mb-8">
                     <button
                         type="submit"
-                        class="group flex-1 inline-flex items-center justify-center gap-x-2 py-4 px-6 font-light transition-all duration-300 bg-black text-white hover:bg-orange-400 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black shadow-sm hover:shadow-md"
+                        class="group flex-1 inline-flex h-12 items-center justify-center gap-x-2 px-6 font-light transition-all duration-300 bg-black text-white hover:bg-orange-400 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black shadow-sm hover:shadow-md"
                     >
                         <span>Добавить в корзину</span>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
@@ -175,7 +199,7 @@ $hasImages = !empty($normalizedImages) && !empty($normalizedImages[0]);
                     </button>
                     <a
                         href="/quote"
-                        class="group flex-1 inline-flex items-center justify-center gap-x-2 py-4 px-6 font-light transition-all duration-300 bg-white text-black border-2 border-black hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                        class="group flex-1 inline-flex h-12 items-center justify-center gap-x-2 px-6 font-light transition-all duration-300 bg-white text-black border-2 border-black hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                     >
                         <span>Оптовый заказ</span>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
@@ -207,17 +231,23 @@ $hasImages = !empty($normalizedImages) && !empty($normalizedImages[0]);
             </div>
         </div>
     </div>
+
+    <?php require __DIR__ . '/../partials/benefits.php'; ?>
 </div>
 
 <script>
 const images = <?= json_encode($normalizedImages) ?>;
+const imageSrcsets = <?= json_encode(array_map($imgSrcset, $normalizedImages)) ?>;
 let currentQuantity = 1;
 
 function selectImage(index) {
     const mainImage = document.getElementById('main-image');
     const thumbnails = document.querySelectorAll('.thumbnail');
-    
-    mainImage.innerHTML = `<img src="${images[index]}" alt="<?= $name ?>" class="w-full h-full object-cover">`;
+
+    const src = images[index] || '';
+    const srcset = imageSrcsets[index] || '';
+    const srcsetAttr = srcset ? ` srcset="${srcset}" sizes="(min-width: 768px) 50vw, 100vw"` : '';
+    mainImage.innerHTML = `<img src="${src}"${srcsetAttr} alt="<?= $name ?>" class="w-full h-full object-cover" loading="eager" decoding="async">`;
     
     thumbnails.forEach((thumb, idx) => {
         if (idx === index) {
@@ -261,14 +291,19 @@ function changeQuantity(delta) {
 }
 
 document.getElementById('add-to-cart-form').addEventListener('submit', function(e) {
+    e.preventDefault();
     const color = document.getElementById('selected-color').value;
     const size = document.getElementById('selected-size').value;
     
     if (!color || !size) {
-        e.preventDefault();
         if (typeof window.showToast === 'function') {
             window.showToast('Пожалуйста, выберите цвет и размер', 'error');
         }
+        return;
+    }
+
+    if (typeof window.addToCart === 'function') {
+        window.addToCart('<?= $productId ?>', color, size, currentQuantity);
     }
 });
 </script>

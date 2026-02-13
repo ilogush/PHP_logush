@@ -10,6 +10,13 @@ $ogTitle = $ogTitle ?? null;
 $ogDescription = $ogDescription ?? null;
 $ogUrl = $ogUrl ?? null;
 $ogImage = $ogImage ?? null;
+
+$assetUrl = static function (string $path): string {
+    // Cache-bust non-fingerprinted assets on shared hosting.
+    $full = dirname(__DIR__) . '/public' . $path;
+    $v = is_file($full) ? (string) @filemtime($full) : '1';
+    return $path . '?v=' . rawurlencode($v);
+};
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -46,8 +53,9 @@ $ogImage = $ogImage ?? null;
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="/assets/root-DXB_3M8-.css">
     
-    <!-- Animations CSS -->
-    <link rel="stylesheet" href="/css/animations.css">
+	    <!-- Animations CSS -->
+	    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/css/animations.css'), ENT_QUOTES, 'UTF-8') ?>">
+	    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/css/ui.css'), ENT_QUOTES, 'UTF-8') ?>">
     
     <!-- Favicon -->
     <link rel="icon" href="/favicon.ico">
@@ -63,9 +71,10 @@ $ogImage = $ogImage ?? null;
         <?= $content ?>
     </main>
     
-    <?php require __DIR__ . '/partials/footer-new.php'; ?>
-    
-    <!-- Minimal JavaScript for interactivity -->
-    <script src="/js/app.js" defer></script>
-</body>
-</html>
+	    <?php require __DIR__ . '/partials/footer-new.php'; ?>
+	    
+	    <!-- Minimal JavaScript for interactivity -->
+	    <script src="<?= htmlspecialchars($assetUrl('/js/toast.js'), ENT_QUOTES, 'UTF-8') ?>" defer></script>
+	    <script src="<?= htmlspecialchars($assetUrl('/js/app.js'), ENT_QUOTES, 'UTF-8') ?>" defer></script>
+	</body>
+	</html>

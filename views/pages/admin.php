@@ -2,15 +2,15 @@
 $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 
 $inputBase = 'w-full h-10 px-3 py-2 border border-gray-300 bg-white rounded-lg focus:outline-none focus:border-gray-300 focus:ring-0 disabled:bg-gray-100 disabled:cursor-not-allowed';
-$btnPrimary = 'flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 text-white border border-transparent hover:bg-blue-700 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg';
-$btnSecondaryIcon = 'flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-400 text-white border border-transparent hover:bg-blue-500 font-medium rounded-lg h-8 w-8 p-0';
+$btnPrimary = 'flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 text-white border border-transparent hover:bg-blue-700 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg h-10';
+$btnSecondaryIcon = 'flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-400 text-white border border-transparent hover:bg-blue-500 font-medium rounded-lg h-10 w-10 p-0';
 
 $tableWrap = 'w-full max-w-full bg-white shadow-sm border border-gray-100 overflow-hidden rounded-xl touch-pan-y';
 $table = 'w-full table-fixed divide-y divide-gray-100';
 $thead = 'bg-gray-50';
 $tbody = 'bg-white divide-y divide-gray-100';
-$th = 'px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider';
-$td = 'px-6 py-4 text-sm';
+$th = 'px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider';
+$td = 'px-4 py-3 text-sm align-top';
 
 $eyeIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>';
 $trashIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"></path></svg>';
@@ -93,29 +93,38 @@ $pageTitle = match ($section) {
       </div>
     </div>
 
-    <div class="<?= $e($tableWrap) ?>">
-      <table class="<?= $e($table) ?>">
-        <thead class="<?= $e($thead) ?>">
-          <tr>
-            <th class="<?= $e($th) ?>">Название</th>
-            <th class="<?= $e($th) ?>">Артикул</th>
-            <th class="<?= $e($th) ?>">Цена</th>
-            <th class="<?= $e($th) ?>">Категория</th>
-            <th class="<?= $e($th) ?>">Цвета</th>
-            <th class="<?= $e($th) ?>">Размеры</th>
-            <th class="<?= $e($th) ?>">Остатки</th>
-            <th class="<?= $e($th) ?> w-20"><span class="sr-only">Наличие</span></th>
-            <th class="<?= $e($th) ?>">Действия</th>
-          </tr>
-        </thead>
-        <tbody class="<?= $e($tbody) ?>">
-          <?php if (!is_array($products) || count($products) === 0): ?>
-            <tr>
-              <td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="9">Нет товаров</td>
-            </tr>
-          <?php else: ?>
-            <?php foreach ($products as $item): ?>
-              <?php if (!is_array($item)) { continue; } ?>
+	    <div class="<?= $e($tableWrap) ?>">
+	      <table class="<?= $e($table) ?>">
+	        <colgroup>
+	          <col>
+	          <col class="w-[110px]">
+	          <col class="w-[110px]">
+	          <col class="w-[140px]">
+	          <col class="w-[90px]">
+	          <col class="w-[160px]">
+	          <col class="w-[90px]">
+	          <col class="w-[56px]">
+	        </colgroup>
+	        <thead class="<?= $e($thead) ?>">
+	          <tr>
+	            <th class="<?= $e($th) ?>">Название</th>
+	            <th class="<?= $e($th) ?>">Артикул</th>
+	            <th class="<?= $e($th) ?>">Цена</th>
+	            <th class="<?= $e($th) ?>">Категория</th>
+	            <th class="<?= $e($th) ?>">Цвета</th>
+	            <th class="<?= $e($th) ?>">Размеры</th>
+	            <th class="<?= $e($th) ?>">Остатки</th>
+	            <th class="<?= $e($th) ?> w-20"><span class="sr-only">Наличие</span></th>
+	          </tr>
+	        </thead>
+	        <tbody class="<?= $e($tbody) ?>">
+	          <?php if (!is_array($products) || count($products) === 0): ?>
+	            <tr>
+	              <td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="8">Нет товаров</td>
+	            </tr>
+	          <?php else: ?>
+	            <?php foreach ($products as $item): ?>
+	              <?php if (!is_array($item)) { continue; } ?>
               <?php
                 $id = (string) ($item['id'] ?? '');
                 $name = (string) ($item['name'] ?? '');
@@ -135,20 +144,22 @@ $pageTitle = match ($section) {
                   implode(' ', array_map('strval', $colorsList)),
                   implode(' ', array_map('strval', $sizesList)),
                 ]));
-              ?>
-              <tr class="hover:bg-gray-50 transition-colors" data-table-search-row data-search-text="<?= $e($searchText) ?>">
-                <td class="<?= $e($td) ?> font-medium text-gray-900">
-                  <div class="flex items-center gap-3">
-                    <?php if ($firstImage !== ''): ?>
-                      <img src="<?= $e($firstImage) ?>" alt="<?= $e($name) ?>" class="h-10 w-10 rounded-lg object-cover border border-gray-200">
-                    <?php else: ?>
-                      <div class="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200"></div>
-                    <?php endif; ?>
-                    <span><?= $e($name) ?></span>
-                  </div>
-                </td>
-                <td class="<?= $e($td) ?> text-gray-600"><?= $e($article !== '' ? $article : '—') ?></td>
-                <td class="<?= $e($td) ?> whitespace-nowrap font-medium text-gray-900"><?= $e(number_format($price, 0, '.', ' ')) ?> ₽</td>
+	              ?>
+	              <tr class="hover:bg-gray-50 transition-colors" data-table-search-row data-search-text="<?= $e($searchText) ?>">
+	                <td class="<?= $e($td) ?> font-medium text-gray-900">
+	                  <div class="flex items-center gap-2">
+	                    <a href="/admin/products/<?= $e(rawurlencode($id)) ?>" class="inline-flex h-10 w-10 flex-shrink-0">
+	                      <?php if ($firstImage !== ''): ?>
+	                        <img src="<?= $e($firstImage) ?>" alt="<?= $e($name) ?>" class="h-10 w-10 rounded-lg object-cover border border-gray-200">
+	                      <?php else: ?>
+	                        <div class="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200"></div>
+	                      <?php endif; ?>
+	                    </a>
+	                    <span class="min-w-0 whitespace-normal break-words"><?= $e($name) ?></span>
+	                  </div>
+	                </td>
+	                <td class="<?= $e($td) ?> text-gray-600 whitespace-nowrap"><?= $e($article !== '' ? $article : '—') ?></td>
+	                <td class="<?= $e($td) ?> whitespace-nowrap font-medium text-gray-900"><?= $e(number_format($price, 0, '.', ' ')) ?></td>
                 <td class="<?= $e($td) ?> text-gray-600"><?= $e($category) ?></td>
                 <td class="<?= $e($td) ?> text-gray-600 text-sm">
                   <div class="flex flex-wrap items-center gap-2">
@@ -168,40 +179,154 @@ $pageTitle = match ($section) {
                 </td>
                 <td class="<?= $e($td) ?> text-gray-600 text-sm"><?= $e(implode(', ', array_map('strval', $sizesList))) ?></td>
                 <td class="<?= $e($td) ?> text-gray-600 font-medium"><?= $e((string) $stock) ?></td>
-                <td class="<?= $e($td) ?>">
-                  <span class="inline-flex items-center gap-2" title="<?= $e($inStock ? 'Статус: В наличии' : 'Статус: Нет в наличии') ?>">
-                    <span class="inline-block h-3 w-3 rounded-full <?= $e($inStock ? 'bg-green-500' : 'bg-orange-500') ?>"></span>
-                  </span>
-                </td>
-                <td class="<?= $e($td) ?> whitespace-nowrap">
-                  <div class="flex gap-2 justify-start">
-                    <a
-                      href="/admin/products/<?= $e(rawurlencode($id)) ?>/edit"
-                      class="<?= $e($btnSecondaryIcon) ?>"
-                      title="Просмотр товара"
-                      aria-label="Просмотр товара"
-                    ><?= $eyeIcon ?></a>
-                    <button
-                      type="button"
-                      data-delete-product-id="<?= $e($id) ?>"
-                      class="<?= $e($btnSecondaryIcon) ?>"
-                      title="Удалить товар"
-                      aria-label="Удалить товар"
-                    ><?= $trashIcon ?></button>
-                  </div>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </div>
-<?php elseif ($section === 'product-new' || $section === 'product-edit'): ?>
-  <?php
-    $productsList = is_array($products) ? $products : [];
-    $categoriesList = is_array($categories) ? $categories : [];
-    $colorsList = is_array($colors) ? $colors : [];
+	                <td class="<?= $e($td) ?>">
+	                  <span class="inline-flex items-center gap-2" title="<?= $e($inStock ? 'Статус: В наличии' : 'Статус: Нет в наличии') ?>">
+	                    <span class="inline-block h-3 w-3 rounded-full <?= $e($inStock ? 'bg-green-500' : 'bg-orange-500') ?>"></span>
+	                  </span>
+	                </td>
+	              </tr>
+	            <?php endforeach; ?>
+	          <?php endif; ?>
+	        </tbody>
+	      </table>
+	    </div>
+
+      <?php if (is_array($pagination ?? null)): ?>
+        <?php
+          $p = $pagination;
+          $page = max(1, (int) ($p['page'] ?? 1));
+          $perPage = max(10, (int) ($p['perPage'] ?? 25));
+          $totalPages = max(1, (int) ($p['totalPages'] ?? 1));
+          $total = max(0, (int) ($p['total'] ?? 0));
+          $prev = max(1, $page - 1);
+          $next = min($totalPages, $page + 1);
+        ?>
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div class="text-sm text-gray-600">
+            Показано: <?= $e((string) count($products)) ?> из <?= $e((string) $total) ?>. Страница <?= $e((string) $page) ?> / <?= $e((string) $totalPages) ?>
+          </div>
+          <div class="flex items-center gap-2">
+            <a
+              class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 hover:bg-gray-50 <?= $e($page <= 1 ? 'pointer-events-none opacity-50' : '') ?>"
+              href="/admin/products?page=<?= $e((string) $prev) ?>&perPage=<?= $e((string) $perPage) ?>"
+            >Назад</a>
+            <a
+              class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 hover:bg-gray-50 <?= $e($page >= $totalPages ? 'pointer-events-none opacity-50' : '') ?>"
+              href="/admin/products?page=<?= $e((string) $next) ?>&perPage=<?= $e((string) $perPage) ?>"
+            >Вперед</a>
+          </div>
+        </div>
+      <?php endif; ?>
+	  </div>
+	<?php elseif ($section === 'product-show'): ?>
+	  <?php
+	    $productsList = is_array($products) ? $products : [];
+	    $current = null;
+	    foreach ($productsList as $p) {
+	      if (!is_array($p)) continue;
+	      if ((string) ($p['id'] ?? '') === (string) $entityId) { $current = $p; break; }
+	    }
+	    $pid = $current ? (string) ($current['id'] ?? '') : '';
+	    $pname = $current ? (string) ($current['name'] ?? '') : '';
+	    $pcat = $current ? (string) ($current['category'] ?? '') : '';
+	    $particle = $current ? (string) ($current['article'] ?? '') : '';
+	    $pprice = $current ? (float) ($current['price'] ?? 0) : 0;
+	    $pstock = $current ? (int) ($current['stock'] ?? 0) : 0;
+	    $pinStock = $current ? (bool) ($current['inStock'] ?? true) : true;
+	    $pimages = ($current && is_array($current['images'] ?? null)) ? $current['images'] : [];
+	    $pfirstImage = (string) (($pimages[0] ?? '') ?: '');
+	    $pcolors = ($current && is_array($current['colors'] ?? null)) ? $current['colors'] : [];
+	    $psizes = ($current && is_array($current['sizes'] ?? null)) ? $current['sizes'] : [];
+	  ?>
+	  <div>
+	    <div class="mb-6 flex items-center justify-between gap-3">
+	      <div class="flex items-center gap-3">
+	        <a href="/admin/products" class="inline-flex items-center justify-center p-2 rounded-lg bg-white hover:bg-gray-200 transition-all duration-200 shadow-sm border border-gray-200" aria-label="Назад">
+	          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+	            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+	          </svg>
+	        </a>
+	        <h2 class="text-2xl font-semibold text-gray-900">Товар</h2>
+	      </div>
+	      <?php if (is_array($current)): ?>
+	        <div class="flex items-center gap-2">
+	          <a href="/admin/products/<?= $e(rawurlencode($pid)) ?>/edit" class="<?= $e($btnPrimary) ?>">Редактировать</a>
+	          <button type="button" data-delete-product-id="<?= $e($pid) ?>" class="flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-gray-800 text-white border border-black hover:bg-red-600 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg">
+	            Удалить
+	          </button>
+	        </div>
+	      <?php endif; ?>
+	    </div>
+
+	    <?php if (!is_array($current)): ?>
+	      <div class="rounded-xl border border-gray-200 bg-white p-6 text-gray-600">Товар не найден</div>
+	    <?php else: ?>
+	      <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+	        <div class="lg:col-span-3">
+	          <div class="rounded-xl border border-gray-200 bg-white p-4">
+	            <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 border border-gray-200">
+	              <?php if ($pfirstImage !== ''): ?>
+	                <img src="<?= $e($pfirstImage) ?>" alt="<?= $e($pname) ?>" class="h-full w-full object-cover">
+	              <?php endif; ?>
+	            </div>
+	          </div>
+	        </div>
+	        <div class="lg:col-span-9">
+	          <div class="rounded-xl border border-gray-200 bg-white p-6">
+	            <div class="mb-2 text-xs text-gray-500 uppercase tracking-wider"><?= $e($pcat) ?></div>
+	            <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
+	              <h3 class="text-2xl font-semibold text-gray-900"><?= $e($pname) ?></h3>
+	              <div class="text-xl font-semibold text-gray-900 whitespace-nowrap"><?= $e(number_format($pprice, 0, '.', ' ')) ?> ₽</div>
+	            </div>
+	            <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+	              <div>
+	                <dt class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Артикул</dt>
+	                <dd class="mt-1 text-sm text-gray-900"><?= $e($particle !== '' ? $particle : '—') ?></dd>
+	              </div>
+	              <div>
+	                <dt class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Остатки</dt>
+	                <dd class="mt-1 text-sm text-gray-900"><?= $e((string) $pstock) ?></dd>
+	              </div>
+	              <div>
+	                <dt class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Статус</dt>
+	                <dd class="mt-1 text-sm text-gray-900 whitespace-nowrap">
+	                  <span class="inline-flex items-center gap-2 whitespace-nowrap">
+	                    <span class="inline-block h-3 w-3 rounded-full <?= $e($pinStock ? 'bg-green-500' : 'bg-orange-500') ?>"></span>
+	                    <span><?= $e($pinStock ? 'В наличии' : 'Нет в наличии') ?></span>
+	                  </span>
+	                </dd>
+	              </div>
+	              <div>
+	                <dt class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Размеры</dt>
+	                <dd class="mt-1 text-sm text-gray-900 whitespace-nowrap"><?= $e(implode(', ', array_map('strval', $psizes))) ?></dd>
+	              </div>
+	              <div class="sm:col-span-2">
+	                <dt class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Цвета</dt>
+	                <dd class="mt-2 flex flex-wrap items-center gap-2">
+	                  <?php if (count($pcolors) > 0): ?>
+	                    <?php foreach ($pcolors as $c): ?>
+	                      <?php $cStr = (string) $c; ?>
+	                      <span class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-900">
+	                        <span class="inline-block h-3 w-3 rounded-full border border-gray-300" style="background-color: <?= $e($resolveColorHex($cStr)) ?>;"></span>
+	                        <span><?= $e($cStr) ?></span>
+	                      </span>
+	                    <?php endforeach; ?>
+	                  <?php else: ?>
+	                    <span class="text-sm text-gray-600">—</span>
+	                  <?php endif; ?>
+	                </dd>
+	              </div>
+	            </dl>
+	          </div>
+	        </div>
+	      </div>
+	    <?php endif; ?>
+	  </div>
+	<?php elseif ($section === 'product-new' || $section === 'product-edit'): ?>
+	  <?php
+	    $productsList = is_array($products) ? $products : [];
+	    $categoriesList = is_array($categories) ? $categories : [];
+	    $colorsList = is_array($colors) ? $colors : [];
     $sizesList = is_array($sizes) ? $sizes : [];
 
     $availableColors = [];
@@ -296,15 +421,15 @@ $pageTitle = match ($section) {
     $imageMax = 6;
   ?>
 
-  <div>
-    <div class="mb-6 flex items-center gap-4">
-      <a href="/admin/products" class="inline-flex items-center justify-center p-2 rounded-lg bg-white hover:bg-gray-200 transition-all duration-200 shadow-sm border border-gray-200" aria-label="Назад">
-        <svg class="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
-        </svg>
-      </a>
-      <h2 class="text-2xl font-semibold text-gray-900"><?= $e($section === 'product-edit' ? 'Редактировать товар' : 'Добавить товар') ?></h2>
-    </div>
+	  <div>
+	    <div class="mb-6 flex items-center gap-4">
+	      <a href="/admin/products" class="inline-flex items-center justify-center p-2 rounded-lg bg-white hover:bg-gray-200 transition-all duration-200 shadow-sm border border-gray-200" aria-label="Назад">
+	        <svg class="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+	          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
+	        </svg>
+	      </a>
+	      <h2 class="text-2xl font-semibold text-gray-900"><?= $e($section === 'product-edit' ? 'Редактировать товар' : 'Добавить товар') ?></h2>
+	    </div>
 
     <?php if ($section === 'product-edit' && !is_array($editingProduct)): ?>
       <div class="rounded-3xl bg-white p-6 text-gray-600 shadow-sm">Товар не найден</div>
@@ -324,12 +449,13 @@ $pageTitle = match ($section) {
                 <?php if ($u === '') continue; ?>
                 <div class="relative bg-gray-100 rounded-lg overflow-hidden aspect-[3/4]" data-image-item="<?= $e($u) ?>">
                   <img src="<?= $e($u) ?>" alt="Product <?= $e((string) ($idx + 1)) ?>" class="w-full h-full object-cover">
-                  <button
-                    type="button"
-                    data-remove-image="<?= $e($u) ?>"
-                    class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                    aria-label="Удалить"
-                  >
+	                  <button
+	                    type="button"
+	                    data-remove-image="<?= $e($u) ?>"
+	                    data-ui-compact
+	                    class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-lg hover:bg-red-700"
+	                    aria-label="Удалить"
+	                  >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
                     </svg>
@@ -439,13 +565,13 @@ $pageTitle = match ($section) {
                       ? 'bg-blue-600 border-blue-600 text-white'
                       : 'bg-white border-gray-300 text-gray-700 hover:border-blue-400';
                   ?>
-                  <button
-                    type="button"
-                    data-toggle-color="<?= $e($colorName) ?>"
-                    class="px-4 py-2 rounded-lg border-2 font-medium transition-colors <?= $cls ?>"
-                  ><?= $e($colorName) ?></button>
-                <?php endforeach; ?>
-              </div>
+	                  <button
+	                    type="button"
+	                    data-toggle-color="<?= $e($colorName) ?>"
+	                    class="h-10 px-4 rounded-lg border-2 font-medium transition-colors inline-flex items-center justify-center <?= $cls ?>"
+	                  ><?= $e($colorName) ?></button>
+	                <?php endforeach; ?>
+	              </div>
             </div>
           </div>
 
@@ -460,13 +586,13 @@ $pageTitle = match ($section) {
                       ? 'bg-blue-600 border-blue-600 text-white'
                       : 'bg-white border-gray-300 text-gray-700 hover:border-blue-400';
                   ?>
-                  <button
-                    type="button"
-                    data-toggle-size="<?= $e($sz) ?>"
-                    class="px-4 py-2 rounded-lg border-2 font-medium transition-colors <?= $cls ?>"
-                  ><?= $e($sz) ?></button>
-                <?php endforeach; ?>
-              </div>
+	                  <button
+	                    type="button"
+	                    data-toggle-size="<?= $e($sz) ?>"
+	                    class="h-10 px-4 rounded-lg border-2 font-medium transition-colors inline-flex items-center justify-center <?= $cls ?>"
+	                  ><?= $e($sz) ?></button>
+	                <?php endforeach; ?>
+	              </div>
             </div>
           </div>
         </div>
@@ -492,25 +618,37 @@ $pageTitle = match ($section) {
           >
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-4 pt-4" data-instock="<?= $e($formDefaults['inStock'] ? '1' : '0') ?>">
-          <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
-            <span>В наличии</span>
-            <button
-              type="button"
-              data-toggle-instock
-              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors <?= $formDefaults['inStock'] ? 'bg-blue-600' : 'bg-gray-200' ?>"
-              aria-label="В наличии"
-            >
+	        <div class="flex flex-wrap items-center justify-between gap-4 pt-4" data-instock="<?= $e($formDefaults['inStock'] ? '1' : '0') ?>">
+	          <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+	            <span>В наличии</span>
+	            <button
+	              type="button"
+	              data-toggle-instock
+	              data-ui-compact
+	              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors <?= $formDefaults['inStock'] ? 'bg-blue-600' : 'bg-gray-200' ?>"
+	              aria-label="В наличии"
+	            >
               <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform <?= $formDefaults['inStock'] ? 'translate-x-6' : 'translate-x-1' ?>" data-instock-dot></span>
             </button>
           </div>
-          <button type="submit" class="<?= $e($btnPrimary) ?> h-10 whitespace-nowrap" data-submit>
-            <?= $e($section === 'product-edit' ? 'Сохранить изменения' : 'Создать') ?>
-          </button>
-        </div>
-      </form>
-    <?php endif; ?>
-  </div>
+	          <div class="flex items-center gap-2">
+	            <button type="submit" class="<?= $e($btnPrimary) ?> whitespace-nowrap" data-submit>
+	              <?= $e($section === 'product-edit' ? 'Сохранить' : 'Создать') ?>
+	            </button>
+	            <?php if ($section === 'product-edit'): ?>
+	              <button
+	                type="button"
+	                data-delete-product-id="<?= $e($entityId) ?>"
+	                class="flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-gray-800 text-white border border-black hover:bg-red-600 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg h-10 whitespace-nowrap"
+	              >
+	                Удалить
+	              </button>
+	            <?php endif; ?>
+	          </div>
+	        </div>
+	      </form>
+	    <?php endif; ?>
+	  </div>
 <?php elseif ($section === 'categories'): ?>
   <?php
     $productsList = is_array($products) ? $products : [];
@@ -1757,11 +1895,11 @@ $pageTitle = match ($section) {
                   <?php $u = trim((string) $url); if ($u === '') continue; ?>
                   <div class="relative bg-gray-100 rounded-lg overflow-hidden aspect-[3/4]" data-image-item="<?= $e($u) ?>">
                     <img src="<?= $e($u) ?>" alt="Slide" class="w-full h-full object-cover">
-                    <button type="button" data-remove-image="<?= $e($u) ?>" class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-lg hover:bg-red-700" aria-label="Удалить">
-                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-                      </svg>
-                    </button>
+	                    <button type="button" data-remove-image="<?= $e($u) ?>" data-ui-compact class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-lg hover:bg-red-700" aria-label="Удалить">
+	                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+	                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+	                      </svg>
+	                    </button>
                   </div>
                 <?php endforeach; ?>
                 <label class="aspect-[3/4] border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors" data-settings-upload-tile>
@@ -1780,11 +1918,11 @@ $pageTitle = match ($section) {
                   <?php $u = trim((string) $url); if ($u === '') continue; ?>
                   <div class="relative bg-gray-100 rounded-lg overflow-hidden aspect-[3/4]" data-image-item="<?= $e($u) ?>">
                     <img src="<?= $e($u) ?>" alt="Slide" class="w-full h-full object-cover">
-                    <button type="button" data-remove-image="<?= $e($u) ?>" class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-lg hover:bg-red-700" aria-label="Удалить">
-                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-                      </svg>
-                    </button>
+	                    <button type="button" data-remove-image="<?= $e($u) ?>" data-ui-compact class="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-lg hover:bg-red-700" aria-label="Удалить">
+	                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+	                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+	                      </svg>
+	                    </button>
                   </div>
                 <?php endforeach; ?>
                 <label class="aspect-[3/4] border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors" data-settings-upload-tile>

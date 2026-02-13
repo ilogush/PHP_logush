@@ -102,7 +102,34 @@ final class ApiController
             return;
         }
 
+        if ($path === '/api/cart/count') {
+            $this->cartCount($method);
+            return;
+        }
+
         $this->json(['error' => 'Not found'], 404);
+    }
+
+    private function cartCount(string $method): void
+    {
+        if ($method !== 'GET') {
+            $this->json(['error' => 'Method not allowed'], 405);
+            return;
+        }
+
+        $cart = $_SESSION['cart'] ?? [];
+        if (!is_array($cart)) {
+            $cart = [];
+        }
+
+        $count = 0;
+        foreach ($cart as $item) {
+            if (!is_array($item)) continue;
+            $qty = (int) ($item['quantity'] ?? 1);
+            $count += max(0, $qty);
+        }
+
+        $this->json(['count' => $count]);
     }
 
     private function authLogin(string $method): void
@@ -834,6 +861,7 @@ final class ApiController
         if ($method === 'GET') {
             $key = trim((string) ($_GET['key'] ?? ''));
             $key = ltrim($key, '/');
+            $w = (int) ($_GET['w'] ?? 0);
 
             if ($key === '' || preg_match('/\.\.|\\\\/', $key) === 1) {
                 $this->json(['error' => 'Missing key'], 400);
@@ -844,6 +872,40 @@ final class ApiController
             if (!is_file($fullPath)) {
                 $this->json(['error' => 'Not found'], 404);
                 return;
+            }
+
+            // Responsive derivatives (cached on disk).
+            // Only for raster images and only when width is requested.
+            if ($w > 0 && $w <= 2400) {
+                $contentType = mime_content_type($fullPath) ?: '';
+                $isRaster = str_starts_with($contentType, 'image/')
+                    && !str_contains($contentType, 'svg')
+                    && !str_contains($contentType, 'gif');
+
+                if ($isRaster && function_exists('imagecreatetruecolor')) {
+                    $base = pathinfo($key, PATHINFO_FILENAME);
+                    $dir = trim((string) pathinfo($key, PATHINFO_DIRNAME));
+                    $dir = ($dir === '.' ? '' : $dir);
+
+                    $derivRel = ($dir !== '' ? $dir . '/' : '') . 'derivatives/' . $base . '-w' . $w . '.webp';
+                    $derivPath = $this->store->uploadsPath($derivRel);
+
+                    if (!is_file($derivPath)) {
+                        $derivDir = dirname($derivPath);
+                        if (!is_dir($derivDir)) {
+                            @mkdir($derivDir, 0775, true);
+                        }
+                        // Best-effort: if resize fails, we will fall back to the original.
+                        $this->resizeToWebp($fullPath, $derivPath, $w);
+                    }
+
+                    if (is_file($derivPath)) {
+                        header('Cache-Control: public, max-age=31536000, immutable');
+                        header('Content-Type: image/webp');
+                        readfile($derivPath);
+                        return;
+                    }
+                }
             }
 
             $contentType = mime_content_type($fullPath) ?: 'application/octet-stream';
@@ -899,8 +961,17 @@ final class ApiController
             $folder = 'uploads';
         }
 
-        $fileName = gmdate('YmdHis') . '-' . bin2hex(random_bytes(6)) . '.webp';
-        $relativePath = $folder . '/' . $fileName;
+        $baseName = gmdate('YmdHis') . '-' . bin2hex(random_bytes(6));
+
+        // Prefer optimized WebP output. If GD is missing or optimization fails, keep the original format.
+        $extByMime = [
+            'image/webp' => 'webp',
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+        ];
+        $fallbackExt = $extByMime[$mime] ?? 'bin';
+
+        $relativePath = $folder . '/' . $baseName . '.webp';
         $targetPath = $this->store->uploadsPath($relativePath);
         $targetDir = dirname($targetPath);
 
@@ -908,10 +979,11 @@ final class ApiController
             mkdir($targetDir, 0775, true);
         }
 
-        // Оптимизация изображения: изменение размера и сжатие
+        // Оптимизация изображения: resize + compress + convert to WebP (if possible).
         $optimized = $this->optimizeImage($tmpPath, $targetPath);
         if (!$optimized) {
-            // Если оптимизация не удалась, сохраняем оригинал
+            $relativePath = $folder . '/' . $baseName . '.' . $fallbackExt;
+            $targetPath = $this->store->uploadsPath($relativePath);
             if (!move_uploaded_file($tmpPath, $targetPath)) {
                 $this->json(['error' => 'Upload failed'], 500);
                 return;
@@ -1193,5 +1265,72 @@ final class ApiController
 
         return $saved;
     }
-}
 
+    private function resizeToWebp(string $sourcePath, string $targetPath, int $maxWidth): bool
+    {
+        if ($maxWidth <= 0) {
+            return false;
+        }
+        if (!extension_loaded('gd')) {
+            return false;
+        }
+
+        $image = @imagecreatefromwebp($sourcePath);
+        if ($image === false) {
+            $image = @imagecreatefromjpeg($sourcePath);
+            if ($image === false) {
+                $image = @imagecreatefrompng($sourcePath);
+            }
+            if ($image === false) {
+                return false;
+            }
+        }
+
+        $originalWidth = imagesx($image);
+        $originalHeight = imagesy($image);
+        if ($originalWidth <= 0 || $originalHeight <= 0) {
+            imagedestroy($image);
+            return false;
+        }
+
+        $ratio = min($maxWidth / $originalWidth, 1);
+        $newWidth = (int) max(1, round($originalWidth * $ratio));
+        $newHeight = (int) max(1, round($originalHeight * $ratio));
+
+        // If already small enough, just save a WebP copy (cheap and keeps Content-Type consistent).
+        if ($newWidth === $originalWidth && $newHeight === $originalHeight) {
+            $saved = @imagewebp($image, $targetPath, 82);
+            imagedestroy($image);
+            return (bool) $saved;
+        }
+
+        $resized = imagecreatetruecolor($newWidth, $newHeight);
+        if ($resized === false) {
+            imagedestroy($image);
+            return false;
+        }
+
+        imagealphablending($resized, false);
+        imagesavealpha($resized, true);
+
+        $ok = imagecopyresampled(
+            $resized,
+            $image,
+            0, 0, 0, 0,
+            $newWidth,
+            $newHeight,
+            $originalWidth,
+            $originalHeight
+        );
+        imagedestroy($image);
+
+        if (!$ok) {
+            imagedestroy($resized);
+            return false;
+        }
+
+        $saved = imagewebp($resized, $targetPath, 82);
+        imagedestroy($resized);
+        return (bool) $saved;
+    }
+}

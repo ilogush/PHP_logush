@@ -4,19 +4,19 @@ $items = isset($items) && is_array($items) ? $items : [];
 $total = isset($total) ? (float) $total : 0.0;
 ?>
 <?php if (count($items) === 0): ?>
-  <div class="min-h-[calc(100vh-96px)] bg-white flex items-center justify-center">
-    <div class="text-center px-6 py-16">
-      <h1 class="text-3xl md:text-4xl font-bold text-black mb-4 tracking-wider">КОРЗИНА ПУСТА</h1>
-      <p class="text-gray-600 mb-8">Добавьте товары в корзину, чтобы оформить заказ</p>
-      <a class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 py-3 px-4 text-base w-auto min-w-[180px] bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md" href="/sale">
-        <span>Перейти в магазин</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h12v12"></path>
-        </svg>
-      </a>
-    </div>
-  </div>
+	  <div class="min-h-[calc(100vh-96px)] bg-white flex items-center justify-center">
+	    <div class="text-center py-16">
+	      <h1 class="text-3xl md:text-4xl font-bold text-black mb-4 tracking-wider">КОРЗИНА ПУСТА</h1>
+	      <p class="text-gray-600 mb-8">Добавьте товары в корзину, чтобы оформить заказ</p>
+	      <a class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 h-12 px-4 text-base w-auto min-w-[180px] bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md" href="/sale">
+	        <span>Перейти в магазин</span>
+	        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+	          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6"></path>
+	          <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h12v12"></path>
+	        </svg>
+	      </a>
+	    </div>
+	  </div>
 <?php else: ?>
   <div class="min-h-screen bg-white pb-16">
     <div class="py-8">
@@ -25,49 +25,49 @@ $total = isset($total) ? (float) $total : 0.0;
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2">
           <form id="checkout-form" class="space-y-6" method="post" action="/checkout">
-            <div class="border border-gray-600 p-6">
+            <div class="border border-gray-500 p-6">
               <h2 class="text-xl font-bold text-black mb-4 tracking-wider">КОНТАКТЫ</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-black mb-2">Имя *</label>
-                  <input type="text" name="firstName" class="w-full border border-gray-600 px-4 py-2 focus:outline-none focus:border-black" required>
+                  <input type="text" name="firstName" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-black mb-2">Фамилия *</label>
-                  <input type="text" name="lastName" class="w-full border border-gray-600 px-4 py-2 focus:outline-none focus:border-black" required>
+                  <input type="text" name="lastName" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-black mb-2">Email *</label>
-                  <input type="email" name="customerEmail" class="w-full border border-gray-600 px-4 py-2 focus:outline-none focus:border-black" required>
+                  <input type="email" name="customerEmail" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-black mb-2">Телефон *</label>
-                  <input type="tel" name="customerPhone" class="w-full border border-gray-600 px-4 py-2 focus:outline-none focus:border-black" required>
+                  <input type="tel" name="customerPhone" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
                 </div>
               </div>
             </div>
 
-            <div class="border border-gray-600 p-6">
+            <div class="border border-gray-500 p-6">
               <h2 class="text-xl font-bold text-black mb-4 tracking-wider">ДОСТАВКА</h2>
               <div class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-black mb-2">Адрес *</label>
-                  <input type="text" name="address" class="w-full border border-gray-600 px-4 py-2 focus:outline-none focus:border-black" required>
+                  <input type="text" name="address" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-black mb-2">Город *</label>
-                    <input type="text" name="city" class="w-full border border-gray-600 px-4 py-2 focus:outline-none focus:border-black" required>
+                    <input type="text" name="city" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-black mb-2">Индекс *</label>
-                    <input type="text" name="postalCode" class="w-full border border-gray-600 px-4 py-2 focus:outline-none focus:border-black" required>
+                    <input type="text" name="postalCode" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="border border-gray-600 p-6">
+            <div class="border border-gray-500 p-6">
               <h2 class="text-xl font-bold text-black mb-4 tracking-wider">СПОСОБ ДОСТАВКИ</h2>
               <div class="space-y-3">
                 <label class="flex items-center gap-3 cursor-pointer">
@@ -87,9 +87,9 @@ $total = isset($total) ? (float) $total : 0.0;
               </div>
             </div>
 
-            <div class="border border-gray-600 p-6">
+            <div class="border border-gray-500 p-6">
               <h2 class="text-xl font-bold text-black mb-4 tracking-wider">ОПЛАТА</h2>
-              <select name="paymentMethod" class="w-full border border-gray-600 px-4 py-2 focus:outline-none focus:border-black" required>
+              <select name="paymentMethod" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
                 <option value="card">Банковская карта</option>
                 <option value="invoice">По счету</option>
               </select>
@@ -102,7 +102,7 @@ $total = isset($total) ? (float) $total : 0.0;
         </div>
 
         <div class="lg:col-span-1">
-          <div class="border border-gray-600 p-6 sticky top-4">
+          <div class="border border-gray-500 p-6 sticky top-4">
             <h2 class="text-xl font-bold text-black mb-4 tracking-wider">ВАШ ЗАКАЗ</h2>
 
             <div class="space-y-4 mb-6">
@@ -117,7 +117,7 @@ $total = isset($total) ? (float) $total : 0.0;
               <?php endforeach; ?>
             </div>
 
-            <div class="border-t border-gray-600 pt-4 space-y-2">
+            <div class="border-t border-gray-500 pt-4 space-y-2">
               <div class="flex justify-between text-gray-600">
                 <span>Товары</span>
                 <span><?= $e(number_format($total, 0, '.', ' ')) ?> ₽</span>
@@ -128,19 +128,19 @@ $total = isset($total) ? (float) $total : 0.0;
               </div>
             </div>
 
-            <div class="border-t border-gray-600 pt-4 mt-4">
+            <div class="border-t border-gray-500 pt-4 mt-4">
               <div class="flex justify-between text-xl font-bold text-black">
                 <span>Всего</span>
                 <span data-grand-total><?= $e(number_format($total + 300, 0, '.', ' ')) ?> ₽</span>
               </div>
             </div>
 
-            <button form="checkout-form" type="submit" class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 py-3 px-4 text-base w-full bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md mt-6">
+            <button form="checkout-form" type="submit" class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 h-12 px-4 text-base w-full bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md mt-6">
               <span>Подтвердить заказ</span>
             </button>
 
             <div class="mt-4">
-              <a class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 py-3 px-4 text-base w-full bg-white text-black border border-black hover:bg-black hover:text-white shadow-sm hover:shadow-md" href="/cart">
+              <a class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 h-12 px-4 text-base w-full bg-white text-black border border-black hover:bg-black hover:text-white shadow-sm hover:shadow-md" href="/cart">
                 <span>Вернуться в корзину</span>
               </a>
             </div>
@@ -149,6 +149,8 @@ $total = isset($total) ? (float) $total : 0.0;
       </div>
     </div>
   </div>
+
+  <?php require __DIR__ . '/../partials/benefits.php'; ?>
 
   <script>
     (function () {

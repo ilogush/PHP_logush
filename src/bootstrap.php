@@ -43,6 +43,11 @@ error_reporting(E_ALL);
 ini_set('log_errors', '1');
 ini_set('error_log', $baseDir . '/storage/php_errors.log');
 
+// Reduce filesystem overhead on shared hosting (stat/realpath calls).
+// If the hosting forbids changing these values, ini_set will simply have no effect.
+@ini_set('realpath_cache_size', '4096K');
+@ini_set('realpath_cache_ttl', '600');
+
 $debugRaw = trim((string) getenv('APP_DEBUG'));
 $debug = filter_var($debugRaw === '' ? '0' : $debugRaw, FILTER_VALIDATE_BOOLEAN);
 ini_set('display_errors', $debug ? '1' : '0');
@@ -63,6 +68,8 @@ spl_autoload_register(static function (string $class) use ($baseDir): void {
 });
 
 if (PHP_SAPI !== 'cli' && session_status() !== PHP_SESSION_ACTIVE) {
+    // Lazy session start: only for pages that need it (cart, checkout, admin)
+    // This is handled in App.php based on the route
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     session_set_cookie_params([
         'lifetime' => 0,
@@ -71,7 +78,7 @@ if (PHP_SAPI !== 'cli' && session_status() !== PHP_SESSION_ACTIVE) {
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
-    session_start();
+    // Session will be started on-demand, not here
 }
 
 if (PHP_SAPI !== 'cli') {

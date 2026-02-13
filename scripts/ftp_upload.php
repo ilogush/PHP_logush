@@ -7,7 +7,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../src/bootstrap.php';
 
 // FTP настройки
-$ftpHost = getenv('FTP_HOST') ?: '62.173.139.159';
+$ftpHost = getenv('FTP_HOST') ?: '';
 $ftpUser = getenv('FTP_USER') ?: '';
 $ftpPass = getenv('FTP_PASS') ?: '';
 $ftpPort = (int)(getenv('FTP_PORT') ?: 21);

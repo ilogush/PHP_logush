@@ -21,7 +21,7 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
                     <p class="text-lg text-gray-700 mb-6"><?= $e($hero1) ?></p>
                     <p class="text-lg text-gray-700 mb-6"><?= $e($hero2) ?></p>
                     <p class="text-lg text-gray-700 mb-8"><?= $e($hero3) ?></p>
-                    <a class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 py-3 px-4 text-base w-auto min-w-[180px] bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md" href="/contact">
+                    <a class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 h-12 px-4 text-base w-auto min-w-[180px] bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md" href="/contact">
                         <span><?= $e($heroButton) ?></span>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6"></path>
@@ -48,7 +48,7 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
     </section>
 
     <!-- Sewing Production Section -->
-    <section id="sewing-production" aria-label="Швейное производство" class="py-12 md:py-16 lg:py-20 border-b border-gray-600 md:grid md:grid-cols-6 lg:grid-cols-12">
+    <section id="sewing-production" aria-label="Швейное производство" class="py-12 md:py-16 lg:py-20 border-b border-gray-500 md:grid md:grid-cols-6 lg:grid-cols-12">
         <h2 class="tracking-tight text-xl leading-7 mb-4 md:mb-6 md:col-start-1 md:col-end-7 md:text-3xl md:leading-9 lg:col-start-1 lg:col-end-6 font-semibold">
             <span class="text-black block">Швейное</span>
             <span class="text-gray-600 block">производство</span>
@@ -90,7 +90,17 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
                 ?>
                 <article class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                     <a href="/product/<?= rawurlencode($productId) ?>" class="block aspect-square overflow-hidden">
-                        <img src="<?= $e($img) ?>" alt="<?= $e($name) ?>" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                        <img
+                          src="<?= $e($img) ?>"
+                          <?php if (str_starts_with($img, '/api/upload?key=')): ?>
+                            srcset="<?= $e($img) ?>&w=480 480w, <?= $e($img) ?>&w=1200 1200w"
+                            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                          <?php endif; ?>
+                          alt="<?= $e($name) ?>"
+                          class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          decoding="async"
+                        >
                     </a>
                     <div class="p-4">
                         <?php if ($category): ?>
@@ -115,59 +125,68 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
     </section>
     <?php endif; ?>
 
-    <!-- Reviews Section -->
-    <section aria-label="Отзывы наших клиентов" class="py-12 md:py-16 lg:py-20 border-b border-gray-600 md:grid md:grid-cols-6 lg:grid-cols-12">
-        <h2 class="tracking-tight text-xl leading-7 mb-4 md:mb-6 md:col-start-1 md:col-end-7 md:text-3xl md:leading-9 lg:col-start-1 lg:col-end-6 font-semibold">
-            <span class="text-black block">Отзывы</span>
-            <span class="text-gray-600 block">наших клиентов</span>
-        </h2>
-        <div class="col-start-1 col-end-7 lg:col-start-7 lg:col-end-13 space-y-8">
-            <blockquote class="text-base leading-7 text-black border-b border-gray-600 last:border-b-0 pb-6">
-                "Нужно было изготовить 800 женских свитеров к осеннему сезону. LOGUSH сработали безупречно: вязка идеальная, размеры точь-в-точь по лекалам, сроки выдержаны день в день. Цена оказалась на 20% выгоднее, чем у других производств. Брендированная упаковка — вообще огонь!"
-                <footer class="mt-4 text-black font-semibold">
-                    Анна Соколова
-                    <span class="block font-normal text-gray-600">Основатель бренда WOOL&CO</span>
-                </footer>
-            </blockquote>
-            <blockquote class="text-base leading-7 text-black border-b border-gray-600 last:border-b-0 pb-6">
-                "Третий сезон работаем с Логуш — и каждый раз убеждаемся, что выбрали правильно. Ребята вникают в каждую мелочь, помогают дорабатывать лекала, предлагают технические решения. Произвели уже больше 15 000 изделий, брак — единичные случаи. Это партнеры, на которых можно положиться."
-                <footer class="mt-4 text-black font-semibold">
-                    Михаил Петров
-                    <span class="block font-normal text-gray-600">Директор по развитию KNIT STORY</span>
-                </footer>
-            </blockquote>
-            <blockquote class="text-base leading-7 text-black border-b border-gray-600 last:border-b-0 pb-6">
-                "Запускали детскую линию трикотажа — задача была непростая: многоцветные узоры, размеры от 80 до 140 см, строгие требования к гипоаллергенности. LOGUSH справились блестяще! Профессионализм на каждом этапе, а цены — более чем разумные."
-                <footer class="mt-4 text-black font-semibold">
-                    Елена Иванова
-                    <span class="block font-normal text-gray-600">Создатель бренда SOFT LINE</span>
-                </footer>
-            </blockquote>
-            <blockquote class="text-base leading-7 text-black border-b border-gray-600 last:border-b-0 pb-6">
-                "Работаем с ИП Логуш уже второй год. Качество пошива на высоте, сроки всегда соблюдаются. Особенно радует гибкость в работе — всегда идут навстречу и помогают решить любые вопросы."
-                <footer class="mt-4 text-black font-semibold">
-                    Дмитрий Волков
-                    <span class="block font-normal text-gray-600">Владелец сети магазинов TEXTILE PRO</span>
-                </footer>
-            </blockquote>
-            <blockquote class="text-base leading-7 text-black border-b border-gray-600 last:border-b-0 pb-6">
-                "Заказывали партию из 1200 толстовок для корпоративного мерча. Результат превзошел ожидания — качество печати отличное, ткань приятная, все размеры точные. Рекомендуем!"
-                <footer class="mt-4 text-black font-semibold">
-                    Ольга Морозова
-                    <span class="block font-normal text-gray-600">Менеджер по закупкам TECH CORP</span>
-                </footer>
-            </blockquote>
-            <div class="pt-4">
-                <button class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 py-3 px-4 text-base w-auto min-w-[180px] bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md">
-                    <span>Показать все отзывы</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h12v12"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </section>
+	    <!-- Reviews Section -->
+	    <section aria-label="Отзывы наших клиентов" class="py-12 md:py-16 lg:py-20 border-b border-gray-500 md:grid md:grid-cols-6 lg:grid-cols-12">
+	        <h2 class="tracking-tight text-xl leading-7 mb-4 md:mb-6 md:col-start-1 md:col-end-7 md:text-3xl md:leading-9 lg:col-start-1 lg:col-end-6 font-semibold">
+	            <span class="text-black block">Отзывы</span>
+	            <span class="text-gray-600 block">наших клиентов</span>
+	        </h2>
+	        <div class="col-start-1 col-end-7 lg:col-start-7 lg:col-end-13" data-reviews>
+	            <div class="space-y-8" data-reviews-list>
+	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
+	                "Нужно было изготовить 800 женских свитеров к осеннему сезону. LOGUSH сработали безупречно: вязка идеальная, размеры точь-в-точь по лекалам, сроки выдержаны день в день. Цена оказалась на 20% выгоднее, чем у других производств. Брендированная упаковка — вообще огонь!"
+	                <footer class="mt-4 text-black font-semibold">
+	                    Анна Соколова
+	                    <span class="block font-normal text-gray-600">Основатель бренда WOOL&CO</span>
+	                </footer>
+	            </blockquote>
+	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
+	                "Третий сезон работаем с Логуш — и каждый раз убеждаемся, что выбрали правильно. Ребята вникают в каждую мелочь, помогают дорабатывать лекала, предлагают технические решения. Произвели уже больше 15 000 изделий, брак — единичные случаи. Это партнеры, на которых можно положиться."
+	                <footer class="mt-4 text-black font-semibold">
+	                    Михаил Петров
+	                    <span class="block font-normal text-gray-600">Директор по развитию KNIT STORY</span>
+	                </footer>
+	            </blockquote>
+	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
+	                "Запускали детскую линию трикотажа — задача была непростая: многоцветные узоры, размеры от 80 до 140 см, строгие требования к гипоаллергенности. LOGUSH справились блестяще! Профессионализм на каждом этапе, а цены — более чем разумные."
+	                <footer class="mt-4 text-black font-semibold">
+	                    Елена Иванова
+	                    <span class="block font-normal text-gray-600">Создатель бренда SOFT LINE</span>
+	                </footer>
+	            </blockquote>
+	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
+	                "Работаем с ИП Логуш уже второй год. Качество пошива на высоте, сроки всегда соблюдаются. Особенно радует гибкость в работе — всегда идут навстречу и помогают решить любые вопросы."
+	                <footer class="mt-4 text-black font-semibold">
+	                    Дмитрий Волков
+	                    <span class="block font-normal text-gray-600">Владелец сети магазинов TEXTILE PRO</span>
+	                </footer>
+	            </blockquote>
+	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
+	                "Заказывали партию из 1200 толстовок для корпоративного мерча. Результат превзошел ожидания — качество печати отличное, ткань приятная, все размеры точные. Рекомендуем!"
+	                <footer class="mt-4 text-black font-semibold">
+	                    Ольга Морозова
+	                    <span class="block font-normal text-gray-600">Менеджер по закупкам TECH CORP</span>
+	                </footer>
+	            </blockquote>
+	            <blockquote class="text-base leading-7 text-black border-b border-gray-500 last:border-b-0 pb-6" data-review-item>
+	                "Запрашивали разработку образцов и пошив небольшой капсулы для теста спроса. Команда LOGUSH помогла с подбором пряжи, предложила варианты по посадке и честно предупредила о рисках по некоторым узлам. В итоге получили ровно то качество, которое ожидали, и в сроки."
+	                <footer class="mt-4 text-black font-semibold">
+	                    Мария Кузнецова
+	                    <span class="block font-normal text-gray-600">Продакт-менеджер бренда URBAN KNIT</span>
+	                </footer>
+	            </blockquote>
+	            </div>
+	            <div class="pt-4">
+	                <button type="button" id="home-show-all-reviews" data-action="show-all-reviews" class="group inline-flex items-center justify-center gap-x-2 font-light transition-all duration-300 h-12 px-4 text-base w-auto min-w-[180px] bg-black text-white hover:bg-orange-400 hover:text-black shadow-sm hover:shadow-md">
+	                    <span>Показать все отзывы</span>
+	                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+	                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6"></path>
+	                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h12v12"></path>
+	                    </svg>
+	                </button>
+	            </div>
+	        </div>
+	    </section>
 
     <!-- FAQ Section -->
     <section class="py-12 md:py-16 lg:py-20 md:grid md:grid-cols-6 lg:grid-cols-12">
@@ -184,7 +203,7 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
             ];
             foreach ($faqs as $faq):
             ?>
-            <div class="border-b border-gray-600 py-4 last:border-b-0">
+            <div class="border-b border-gray-500 py-4 last:border-b-0">
                 <button class="flex justify-between w-full text-left text-lg text-black hover:text-gray-700 transition-colors" data-faq-button>
                     <?= $e($faq['q']) ?>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 text-current flex-shrink-0 ml-4" style="transition: transform 0.3s ease;">

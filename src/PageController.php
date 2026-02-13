@@ -58,6 +58,12 @@ final class PageController
             return;
         }
 
+        if ($path === '/login') {
+            // Login must be dynamic (POST handling + error messages).
+            $this->handleLogin($method);
+            return;
+        }
+
         // Skip snapshots for product pages - always render dynamically
         $isProductPage = preg_match('#^/product/([^/]+)$#', $path) === 1;
         
@@ -68,11 +74,6 @@ final class PageController
         if ($path === '/logout' && $method === 'POST') {
             $this->auth->logout();
             $this->redirect('/login');
-            return;
-        }
-
-        if ($path === '/login') {
-            $this->handleLogin($method);
             return;
         }
 
@@ -231,7 +232,7 @@ final class PageController
             return;
         }
 
-        $error = '';
+        // PRG pattern: never render the login page from POST to avoid browser "resubmit form" dialogs.
         if ($method === 'POST') {
             $email = trim((string) ($_POST['email'] ?? ''));
             $password = (string) ($_POST['password'] ?? '');
@@ -241,12 +242,27 @@ final class PageController
                 $this->redirect('/admin/products');
                 return;
             }
-            $error = 'Неверный email или пароль';
+
+            $_SESSION['flash_error'] = 'Неверный email или пароль';
+            $_SESSION['flash_email'] = $email;
+            $this->redirect('/login');
+            return;
+        }
+
+        $error = '';
+        if (isset($_SESSION['flash_error'])) {
+            $error = (string) $_SESSION['flash_error'];
+            unset($_SESSION['flash_error']);
+        }
+        $email = '';
+        if (isset($_SESSION['flash_email'])) {
+            $email = (string) $_SESSION['flash_email'];
+            unset($_SESSION['flash_email']);
         }
 
         $this->renderAdminLayout('Вход', 'pages/login.php', [
             'error' => $error,
-            'email' => (string) ($_POST['email'] ?? ''),
+            'email' => $email,
         ]);
     }
 
@@ -257,7 +273,7 @@ final class PageController
             return;
         }
 
-        $products = $this->store->read('products');
+        $productsAll = $this->store->read('products');
         $orders = $this->store->read('orders');
         $categories = $this->store->read('categories');
         $colors = $this->store->read('colors');
@@ -268,15 +284,20 @@ final class PageController
         $section = 'products';
         $entityId = '';
 
-        if ($path === '/admin' || $path === '/admin/products') {
-            $section = 'products';
-        } elseif ($path === '/admin/products/new') {
-            $section = 'product-new';
-        } elseif (preg_match('#^/admin/products/([^/]+)/edit$#', $path, $matches) === 1) {
-            $section = 'product-edit';
-            $entityId = rawurldecode($matches[1]);
-        } elseif ($path === '/admin/categories') {
-            $section = 'categories';
+	        if ($path === '/admin' || $path === '/admin/products') {
+	            $section = 'products';
+	        } elseif ($path === '/admin/products/new') {
+	            $section = 'product-new';
+	        } elseif (preg_match('#^/admin/products/([^/]+)$#', $path, $matches) === 1) {
+	            // Keep legacy "show" URL, but use the editor view.
+	            $id = rawurldecode($matches[1]);
+	            $this->redirect('/admin/products/' . rawurlencode($id) . '/edit');
+	            return;
+	        } elseif (preg_match('#^/admin/products/([^/]+)/edit$#', $path, $matches) === 1) {
+	            $section = 'product-edit';
+	            $entityId = rawurldecode($matches[1]);
+	        } elseif ($path === '/admin/categories') {
+	            $section = 'categories';
         } elseif ($path === '/admin/colors') {
             $section = 'colors';
         } elseif ($path === '/admin/sizes') {
@@ -298,10 +319,33 @@ final class PageController
             return;
         }
 
+        $products = $productsAll;
+        $pagination = null;
+        if ($section === 'products') {
+            $page = max(1, (int) ($_GET['page'] ?? 1));
+            $perPage = (int) ($_GET['perPage'] ?? 25);
+            if ($perPage < 10) $perPage = 10;
+            if ($perPage > 100) $perPage = 100;
+
+            $total = is_array($productsAll) ? count($productsAll) : 0;
+            $totalPages = (int) max(1, (int) ceil($total / $perPage));
+            if ($page > $totalPages) $page = $totalPages;
+            $offset = ($page - 1) * $perPage;
+            $products = array_slice($productsAll, $offset, $perPage);
+
+            $pagination = [
+                'page' => $page,
+                'perPage' => $perPage,
+                'total' => $total,
+                'totalPages' => $totalPages,
+            ];
+        }
+
         $this->renderAdminLayout('Админ-панель', 'pages/admin.php', [
             'section' => $section,
             'entityId' => $entityId,
             'products' => $products,
+            'pagination' => $pagination,
             'orders' => $orders,
             'categories' => $categories,
             'colors' => $colors,
@@ -315,12 +359,19 @@ final class PageController
 
     private function addToCart(): void
     {
+        $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string) $_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || (isset($_SERVER['HTTP_ACCEPT']) && stripos((string) $_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
         $productId = trim((string) ($_POST['productId'] ?? ''));
         $color = trim((string) ($_POST['color'] ?? ''));
         $size = trim((string) ($_POST['size'] ?? ''));
         $quantity = max(1, (int) ($_POST['quantity'] ?? 1));
 
         if ($productId === '' || $color === '' || $size === '') {
+            if ($isAjax) {
+                http_response_code(400);
+                return;
+            }
             $this->redirect('/cart');
             return;
         }
@@ -355,6 +406,10 @@ final class PageController
         }
 
         $_SESSION['cart'] = $cart;
+        if ($isAjax) {
+            http_response_code(204);
+            return;
+        }
         $this->redirect('/cart');
     }
 
@@ -365,6 +420,23 @@ final class PageController
         if (is_array($cart) && isset($cart[$index])) {
             unset($cart[$index]);
             $_SESSION['cart'] = array_values($cart);
+        }
+
+        $isAjax = (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest')
+            || str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');
+
+        if ($isAjax) {
+            $count = 0;
+            $cartNow = $_SESSION['cart'] ?? [];
+            if (is_array($cartNow)) {
+                foreach ($cartNow as $row) {
+                    $count += (int) ($row['quantity'] ?? 0);
+                }
+            }
+
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => true, 'count' => $count], JSON_UNESCAPED_UNICODE);
+            return;
         }
 
         $this->redirect('/cart');
@@ -811,7 +883,11 @@ final class PageController
 
             $imageBlock = '';
             if ($img !== '') {
-                $imageBlock = '<img src="' . $e($img) . '" alt="' . $e($name) . '" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">';
+                $srcset = '';
+                if (str_starts_with($img, '/api/upload?key=')) {
+                    $srcset = ' srcset="' . $e($img) . '&w=480 480w, ' . $e($img) . '&w=1200 1200w" sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"';
+                }
+                $imageBlock = '<img src="' . $e($img) . '"' . $srcset . ' alt="' . $e($name) . '" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async">';
             } else {
                 // Heroicons PhotoIcon outline.
                 $imageBlock = '<div class="absolute inset-0 flex items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-16 w-16"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.159 2.159m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v10.5a1.5 1.5 0 0 0 1.5 1.5Z" /></svg></div>';

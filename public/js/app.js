@@ -1,6 +1,66 @@
 (function () {
     'use strict';
 
+    function ensureCartBadges() {
+        // SSR snapshots may not contain badge markup. Inject badges into header cart links.
+        if (document.querySelector('[data-cart-count]')) return;
+
+        const header = document.querySelector('header');
+        if (!header) return;
+
+        const cartLinks = header.querySelectorAll('a[href=\"/cart\"]');
+        cartLinks.forEach(function (a) {
+            if (!a || !(a instanceof HTMLAnchorElement)) return;
+            if (a.querySelector('[data-cart-count]')) return;
+
+            // Ensure anchor can position the badge.
+            a.classList.add('relative');
+
+            const badge = document.createElement('span');
+            badge.setAttribute('data-cart-count', '');
+            badge.className =
+                'hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full ' +
+                'items-center justify-center text-[10px] leading-none font-semibold ' +
+                'bg-black text-white';
+            badge.textContent = '';
+            a.appendChild(badge);
+        });
+    }
+
+    function setCartBadges(count) {
+        const n = Math.max(0, parseInt(count || 0, 10) || 0);
+        document.querySelectorAll('[data-cart-count]').forEach(function (el) {
+            if (!el || !(el instanceof HTMLElement)) return;
+            if (n > 0) {
+                el.textContent = String(n);
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            } else {
+                el.textContent = '';
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            }
+        });
+    }
+
+    function refreshCartCount() {
+        try {
+            return fetch('/api/cart/count', { headers: { 'Accept': 'application/json' } })
+                .then(function (res) { return res.ok ? res.json() : null; })
+                .then(function (data) { if (data && typeof data.count !== 'undefined') setCartBadges(data.count); });
+        } catch (_) {
+            return Promise.resolve();
+        }
+    }
+
+    function emitCartChanged() {
+        try {
+            window.dispatchEvent(new CustomEvent('cart:changed'));
+        } catch (_) {
+            // IE11 not supported; ignore.
+        }
+    }
+
     function onReady(fn) {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', fn, { once: true });
@@ -132,22 +192,11 @@
         }
     }
 
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        const level = type || 'success';
-        toast.className =
-            'fixed top-4 right-4 z-[9999] px-6 py-4 rounded-lg shadow-lg text-white transition-opacity duration-300 ' +
-            (level === 'success' ? 'bg-green-500' : level === 'error' ? 'bg-red-500' : 'bg-blue-500');
-        toast.textContent = message;
-        document.body.appendChild(toast);
-
-        setTimeout(function () {
-            toast.style.opacity = '0';
-            setTimeout(function () {
-                toast.remove();
-            }, 300);
-        }, 3000);
-    }
+	    function showToast(message, type) {
+	        if (typeof window.showToast === 'function') {
+	            window.showToast(message, type);
+	        }
+	    }
 
     function validateForm(formId) {
         const form = document.getElementById(formId);
@@ -171,7 +220,10 @@
     function addToCart(productId, color, size, quantity) {
         fetch('/cart/add', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
             body: new URLSearchParams({
                 productId: productId,
                 color: color,
@@ -181,7 +233,9 @@
         })
             .then(function (response) {
                 if (response.ok) {
-                    showToast('Товар добавлен в корзину');
+                    showToast('Товар добавлен в корзину', 'success');
+                    refreshCartCount();
+                    emitCartChanged();
                 } else {
                     showToast('Ошибка при добавлении товара', 'error');
                 }
@@ -189,6 +243,47 @@
             .catch(function () {
                 showToast('Ошибка при добавлении товара', 'error');
             });
+    }
+
+    function initCartRemove() {
+        // Intercept /cart/remove to update cart badge immediately (and keep UI responsive).
+        document.querySelectorAll('form[action=\"/cart/remove\"]').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                // If JS disabled, it will still work via normal POST+redirect.
+                e.preventDefault();
+
+                const btn = form.querySelector('button[type=\"submit\"]');
+                if (btn) btn.disabled = true;
+
+                fetch('/cart/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: new URLSearchParams(new FormData(form)),
+                })
+                    .then(function (res) { return res.ok ? res.json() : null; })
+                    .then(function (data) {
+                        refreshCartCount();
+                        emitCartChanged();
+
+                        // Totals are server-rendered; simplest reliable approach is to reload.
+                        if (data && data.ok) {
+                            showToast('Товар удалён', 'success');
+                            window.location.reload();
+                            return;
+                        }
+                        showToast('Ошибка при удалении товара', 'error');
+                        if (btn) btn.disabled = false;
+                    })
+                    .catch(function () {
+                        showToast('Ошибка при удалении товара', 'error');
+                        if (btn) btn.disabled = false;
+                    });
+            });
+        });
     }
 
     function initSlider(sliderId) {
@@ -305,60 +400,54 @@
         update();
     }
 
-    function initReviews() {
-        const reviewsSection = document.querySelector('[aria-label="Отзывы наших клиентов"]');
-        if (!reviewsSection) return;
+	    function initReviews() {
+	        const roots = Array.from(document.querySelectorAll('[data-reviews]'));
+	        if (!roots.length) {
+	            return;
+	        }
 
-        const reviewsContainer = reviewsSection.querySelector('.space-y-8');
-        const showAllButton = reviewsSection.querySelector('button');
-        
-        if (!reviewsContainer || !showAllButton) return;
+	        const visibleCount = 3;
 
-        const allReviews = reviewsContainer.querySelectorAll('blockquote');
-        const visibleCount = 3;
+	        roots.forEach(function(reviewsRoot) {
+	            const showAllButton = reviewsRoot.querySelector('[data-action="show-all-reviews"]');
+	            const buttonWrap = showAllButton ? showAllButton.parentElement : null;
+	            const items = Array.from(reviewsRoot.querySelectorAll('[data-review-item]'));
 
-        // Скрываем отзывы после третьего
-        allReviews.forEach(function(review, index) {
-            if (index >= visibleCount) {
-                review.style.display = 'none';
-                review.setAttribute('data-hidden-review', 'true');
-            }
-        });
+	            if (!showAllButton || !buttonWrap || !items.length) {
+	                return;
+	            }
 
-        // Скрываем кнопку если отзывов 3 или меньше
-        if (allReviews.length <= visibleCount) {
-            showAllButton.parentElement.style.display = 'none';
-        }
+	            if (items.length <= visibleCount) {
+	                buttonWrap.style.display = 'none';
+	                return;
+	            }
 
-        showAllButton.addEventListener('click', function() {
-            const hiddenReviews = reviewsContainer.querySelectorAll('[data-hidden-review="true"]');
-            
-            hiddenReviews.forEach(function(review) {
-                review.style.display = 'block';
-                review.removeAttribute('data-hidden-review');
-            });
+	            // Показываем первые N, остальные скрываем.
+	            items.forEach(function(item, idx) {
+	                const shouldHide = idx >= visibleCount;
+	                item.hidden = shouldHide;
+	                if (shouldHide) {
+	                    item.setAttribute('data-hidden', 'true');
+	                    item.setAttribute('aria-hidden', 'true');
+	                } else {
+	                    item.removeAttribute('data-hidden');
+	                    item.removeAttribute('aria-hidden');
+	                }
+	            });
 
-            // Скрываем кнопку после показа всех отзывов
-            showAllButton.parentElement.style.display = 'none';
-        });
-    }
+	            showAllButton.addEventListener('click', function(e) {
+	                e.preventDefault();
 
-    onReady(function () {
-        initMobileMenu();
-        initFAQ();
-        initScrollAnimations();
-        initCounterAnimations();
-        initReviews();
-    });
+	                items.forEach(function(item) {
+	                    item.hidden = false;
+	                    item.removeAttribute('data-hidden');
+	                    item.removeAttribute('aria-hidden');
+	                });
 
-    window.openModal = openModal;
-    window.closeModal = closeModal;
-    window.showToast = showToast;
-    window.validateForm = validateForm;
-    window.addToCart = addToCart;
-    window.initSlider = initSlider;
-})();
-
+	                buttonWrap.style.display = 'none';
+	            });
+	        });
+	    }
 
     // Инициализация слайдеров на главной странице
     function initHomeSliders() {
@@ -415,6 +504,25 @@
     onReady(function () {
         initMobileMenu();
         initFAQ();
-        initHomeSliders();
+        initScrollAnimations();
+        initCounterAnimations();
         initReviews();
+        initHomeSliders();
+        initCartRemove();
+        ensureCartBadges();
+        refreshCartCount();
     });
+
+    window.addEventListener('cart:changed', function () {
+        refreshCartCount();
+    });
+
+	    window.openModal = openModal;
+	    window.closeModal = closeModal;
+	    // `window.showToast` is provided by `/js/toast.js` (shared UI). Keep a safe alias for legacy calls.
+	    window.showToast = window.showToast || showToast;
+	    window.validateForm = validateForm;
+	    window.addToCart = addToCart;
+        window.refreshCartCount = refreshCartCount;
+    window.initSlider = initSlider;
+})();

@@ -8,6 +8,9 @@ use PDO;
 
 final class DatabaseMigrator
 {
+    // Bump when schema/index list changes. Used to avoid running migrations on every request.
+    public const SCHEMA_VERSION = 2;
+
     public static function migrate(PDO $pdo): void
     {
         $statements = [
@@ -114,6 +117,11 @@ final class DatabaseMigrator
         self::ensureIndex($pdo, 'products', 'idx_products_article', "CREATE INDEX idx_products_article ON products(article)");
 
         self::ensureColumn($pdo, 'users', 'updated_at', "ALTER TABLE users ADD COLUMN updated_at DATETIME NULL AFTER created_at");
+
+        // Add performance indexes for shared hosting (WMRS)
+        self::ensureIndex($pdo, 'products', 'idx_products_main_category', "CREATE INDEX idx_products_main_category ON products(main_category)");
+        self::ensureIndex($pdo, 'products', 'idx_products_in_stock', "CREATE INDEX idx_products_in_stock ON products(in_stock)");
+        self::ensureIndex($pdo, 'orders', 'idx_orders_customer_email', "CREATE INDEX idx_orders_customer_email ON orders(customer_email)");
     }
 
     private static function ensureColumn(PDO $pdo, string $table, string $column, string $sql): void

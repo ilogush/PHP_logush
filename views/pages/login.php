@@ -15,11 +15,15 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
         <p class="text-sm text-gray-600">Административная панель</p>
       </div>
 
-      <?php if ($error !== ''): ?>
-        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <?= $e($error) ?>
-        </div>
-      <?php endif; ?>
+	      <?php if ($error !== ''): ?>
+	        <script>
+	          window.addEventListener('DOMContentLoaded', function () {
+	            if (typeof window.showToast === 'function') {
+	              window.showToast(<?= json_encode((string) $error, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>, 'error');
+	            }
+	          });
+	        </script>
+	      <?php endif; ?>
 
       <form class="space-y-6" method="post" action="/login">
         <div>
@@ -29,7 +33,7 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
             type="text"
             autocomplete="username"
             required
-            class="appearance-none block w-full px-4 py-3 border border-gray-600 placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
+            class="appearance-none block w-full px-4 py-3 border border-gray-500 placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
             placeholder="ilogush@icloud.com"
             name="email"
             value="<?= $e($email) ?>"
@@ -45,7 +49,7 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
               data-password-input
               autocomplete="current-password"
               required
-              class="appearance-none block w-full px-4 py-3 pr-12 border border-gray-600 placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
+              class="appearance-none block w-full px-4 py-3 pr-12 border border-gray-500 placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
               placeholder="••••••••"
               name="password"
               value=""
@@ -59,18 +63,10 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
           </div>
         </div>
 
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input id="remember-me" type="checkbox" class="h-4 w-4 text-black focus:ring-0 border-gray-600 cursor-pointer" name="remember-me">
-            <label for="remember-me" class="ml-2 block text-sm text-gray-700 cursor-pointer">Запомнить меня</label>
-          </div>
-          <div class="text-sm">
-            <a class="text-gray-800 hover:text-black transition-colors border-b border-transparent hover:border-black" href="/contact">Забыли пароль?</a>
-          </div>
-        </div>
+        <!-- Remember/forgot removed per UI request -->
 
         <div>
-          <button type="submit" class="group flex items-center justify-center gap-x-2 px-4 py-3 w-full text-base font-light transition-colors duration-300 bg-black text-white hover:bg-orange-400 hover:text-black disabled:opacity-50 disabled:cursor-not-allowed">
+          <button type="submit" class="group flex h-12 items-center justify-center gap-x-2 px-4 w-full text-base font-light transition-colors duration-300 bg-black text-white hover:bg-orange-400 hover:text-black disabled:opacity-50 disabled:cursor-not-allowed">
             <span>Войти</span>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-5 h-5 transition-colors">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6"></path>
@@ -90,3 +86,15 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
     </div>
   </div>
 </div>
+
+<script>
+  // Fallback: password toggle on login page (in case admin.js is cached/blocked).
+  window.addEventListener('DOMContentLoaded', function () {
+    var btn = document.querySelector('[data-toggle-password]');
+    var input = document.querySelector('[data-password-input]');
+    if (!btn || !input) return;
+    btn.addEventListener('click', function () {
+      input.type = (input.type === 'password') ? 'text' : 'password';
+    });
+  });
+</script>

@@ -15,6 +15,7 @@ final class DataStore
     private string $uploadDir;
     private ?PDO $pdo;
     private ?bool $dbReady = null;
+    private array $cache = []; // In-memory cache for read operations
 
     public function __construct(private readonly string $baseDir)
     {
@@ -28,12 +29,40 @@ final class DataStore
         }
 
         try {
-            DatabaseMigrator::migrate($this->pdo);
+            $this->maybeMigrateDatabase();
             $this->dbReady = null;
         } catch (Throwable $e) {
             $this->dbReady = false;
             throw new \RuntimeException('Database migrations failed. Check DB user permissions.', 0, $e);
         }
+    }
+
+    private function maybeMigrateDatabase(): void
+    {
+        $stampPath = $this->baseDir . '/storage/.db_schema_version';
+        $expected = (string) DatabaseMigrator::SCHEMA_VERSION;
+
+        $current = '';
+        if (is_file($stampPath)) {
+            $raw = file_get_contents($stampPath);
+            if (is_string($raw)) {
+                $current = trim($raw);
+            }
+        }
+
+        $force = filter_var((string) getenv('APP_RUN_MIGRATIONS'), FILTER_VALIDATE_BOOLEAN);
+        $needs = ($current !== $expected);
+
+        // On shared hosting we still want a working first deploy even without CLI access:
+        // run migrations once when stamp is missing/outdated, then stamp the version.
+        if (!$force && !$needs) {
+            return;
+        }
+
+        DatabaseMigrator::migrate($this->pdo);
+
+        // Best-effort stamp write; do not crash the app if FS is read-only.
+        @file_put_contents($stampPath, $expected);
     }
 
     public function pdo(): ?PDO
@@ -65,9 +94,14 @@ final class DataStore
 
     public function read(string $name): array
     {
+        // Check cache first (in-memory for request lifecycle)
+        if (isset($this->cache[$name])) {
+            return $this->cache[$name];
+        }
+
         $this->assertDbReady();
 
-        return match ($name) {
+        $data = match ($name) {
             'products' => $this->readProductsFromDb(),
             'categories' => $this->readCategoriesFromDb(),
             'colors' => $this->readNamedFromDb('colors'),
@@ -78,6 +112,10 @@ final class DataStore
             'settings' => $this->readSettingsFromDb(),
             default => [],
         };
+
+        // Cache the result
+        $this->cache[$name] = $data;
+        return $data;
     }
 
     public function write(string $name, array $data): void
@@ -95,6 +133,9 @@ final class DataStore
             'settings' => $this->replaceSettingsInDb($data),
             default => null,
         };
+
+        // Invalidate cache after write
+        unset($this->cache[$name]);
     }
 
     public function nextId(string $name): string

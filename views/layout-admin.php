@@ -6,6 +6,12 @@ $authUser = isset($authUser) && is_array($authUser) ? $authUser : null;
 $isAdminShell = str_starts_with($currentPath, '/admin');
 $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 
+$assetUrl = static function (string $path): string {
+  $full = dirname(__DIR__) . '/public' . $path;
+  $v = is_file($full) ? (string) @filemtime($full) : '1';
+  return $path . '?v=' . rawurlencode($v);
+};
+
 $isActive = static function (string $path) use ($currentPath): bool {
   if ($path === '') return false;
   return $currentPath === $path || str_starts_with($currentPath, $path . '/');
@@ -57,15 +63,18 @@ $menuItems = [
   <meta name="robots" content="noindex, nofollow">
   <title><?= $e($title) ?></title>
   <link rel="stylesheet" href="/assets/root-DXB_3M8-.css">
+  <link rel="stylesheet" href="<?= $e($assetUrl('/css/ui.css')) ?>">
 </head>
-<body class="__className_f367f3 text-black">
-  <?php if (!$isAdminShell): ?>
-    <?= $content ?>
-  <?php else: ?>
-    <div class="flex h-screen overflow-hidden bg-gray-100" data-admin-shell="1">
+	<body class="__className_f367f3 text-black">
+	  <?php if (!$isAdminShell): ?>
+	    <?= $content ?>
+	    <script src="<?= $e($assetUrl('/js/toast.js')) ?>" defer></script>
+	    <script src="<?= $e($assetUrl('/js/admin.js')) ?>" defer></script>
+	  <?php else: ?>
+	    <div class="flex h-screen overflow-hidden bg-gray-100" data-admin-shell="1">
       <div id="adminOverlay" class="fixed inset-0 z-40 bg-black/50 lg:hidden hidden" aria-hidden="true"></div>
 
-      <aside id="adminSidebar" class="fixed left-0 top-0 z-50 flex h-screen w-56 -translate-x-full flex-col overflow-y-hidden bg-white duration-300 lg:static lg:overflow-hidden lg:w-0">
+	      <aside id="adminSidebar" class="fixed left-0 top-0 z-50 flex h-screen w-56 -translate-x-full flex-col overflow-y-hidden bg-gray-50 duration-300 lg:static lg:overflow-hidden lg:w-0">
         <div class="flex items-center justify-between gap-2 px-6 pt-8 pb-7">
           <a href="/" class="flex items-center">
             <span class="text-xl font-bold text-gray-900">Logush</span>
@@ -129,12 +138,12 @@ $menuItems = [
 
             <div class="flex items-center gap-3">
               <div class="relative">
-                <button
-                  type="button"
-                  id="adminNotifBtn"
-                  class="relative flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  aria-label="Уведомления"
-                >
+	                <button
+	                  type="button"
+	                  id="adminNotifBtn"
+	                  class="relative flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+	                  aria-label="Уведомления"
+	                >
                   <span id="adminNotifBadge" class="absolute -top-1 -right-1 z-10 hidden min-h-5 min-w-5 items-center justify-center rounded-full bg-orange-400 px-1 text-xs font-semibold text-white"></span>
                   <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M10.75 2.29248C10.75 1.87827 10.4143 1.54248 10 1.54248C9.58583 1.54248 9.25004 1.87827 9.25004 2.29248V2.83613C6.08266 3.20733 3.62504 5.9004 3.62504 9.16748V14.4591H3.33337C2.91916 14.4591 2.58337 14.7949 2.58337 15.2091C2.58337 15.6234 2.91916 15.9591 3.33337 15.9591H4.37504H15.625H16.6667C17.0809 15.9591 17.4167 15.6234 17.4167 15.2091C17.4167 14.7949 17.0809 14.4591 16.6667 14.4591H16.375V9.16748C16.375 5.9004 13.9174 3.20733 10.75 2.83613V2.29248ZM14.875 14.4591V9.16748C14.875 6.47509 12.6924 4.29248 10 4.29248C7.30765 4.29248 5.12504 6.47509 5.12504 9.16748V14.4591H14.875ZM8.00004 17.7085C8.00004 18.1228 8.33583 18.4585 8.75004 18.4585H11.25C11.6643 18.4585 12 18.1228 12 17.7085C12 17.2943 11.6643 16.9585 11.25 16.9585H8.75004C8.33583 16.9585 8.00004 17.2943 8.00004 17.7085Z" />
@@ -154,12 +163,12 @@ $menuItems = [
                 </div>
               </div>
 
-              <button
-                type="button"
-                id="adminHeaderLogout"
-                class="flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                title="Выйти"
-              >
+	              <button
+	                type="button"
+	                id="adminHeaderLogout"
+	                class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+	                title="Выйти"
+	              >
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                 </svg>
@@ -174,8 +183,9 @@ $menuItems = [
           </div>
         </main>
       </div>
-    </div>
-    <script src="/js/admin.js" defer></script>
-  <?php endif; ?>
-</body>
-</html>
+	    </div>
+	    <script src="<?= $e($assetUrl('/js/toast.js')) ?>" defer></script>
+	    <script src="<?= $e($assetUrl('/js/admin.js')) ?>" defer></script>
+	  <?php endif; ?>
+	</body>
+	</html>

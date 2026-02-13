@@ -1,0 +1,19 @@
+:root {
+  --ui-h-10: 2.5rem; /* Tailwind h-10 */
+}
+
+/* Normalize common button/input padding so h-10 doesn't get blown up by vertical padding. */
+:where(button):not([data-ui-compact]) {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+:where(select, input:not([type="checkbox"]):not([type="radio"])) {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Force a single border tone across the app (Tailwind build may omit border-gray-500 utility). */
+.border-gray-500 {
+  border-color: var(--color-gray-500) !important;
+}
