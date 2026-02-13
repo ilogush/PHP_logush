@@ -886,8 +886,9 @@ final class ApiController
         }
 
         $mime = mime_content_type($tmpPath) ?: '';
-        if ($mime !== 'image/webp') {
-            $this->json(['error' => 'Only WebP files are allowed'], 415);
+        $allowedMimes = ['image/webp', 'image/jpeg', 'image/png'];
+        if (!in_array($mime, $allowedMimes, true)) {
+            $this->json(['error' => 'Only WebP, JPEG, and PNG images are allowed'], 415);
             return;
         }
 
@@ -907,9 +908,14 @@ final class ApiController
             mkdir($targetDir, 0775, true);
         }
 
-        if (!move_uploaded_file($tmpPath, $targetPath)) {
-            $this->json(['error' => 'Upload failed'], 500);
-            return;
+        // Оптимизация изображения: изменение размера и сжатие
+        $optimized = $this->optimizeImage($tmpPath, $targetPath);
+        if (!$optimized) {
+            // Если оптимизация не удалась, сохраняем оригинал
+            if (!move_uploaded_file($tmpPath, $targetPath)) {
+                $this->json(['error' => 'Upload failed'], 500);
+                return;
+            }
         }
 
         $this->json([
@@ -1106,4 +1112,86 @@ final class ApiController
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
         );
     }
+
+    /**
+     * Оптимизация изображения: изменение размера и сжатие
+     * 
+     * @param string $sourcePath Путь к исходному файлу
+     * @param string $targetPath Путь для сохранения оптимизированного файла
+     * @return bool Успешность операции
+     */
+    private function optimizeImage(string $sourcePath, string $targetPath): bool
+    {
+        if (!extension_loaded('gd')) {
+            return false;
+        }
+
+        // Загрузка изображения
+        $image = @imagecreatefromwebp($sourcePath);
+        if ($image === false) {
+            // Попробуем другие форматы на случай если mime определился неверно
+            $image = @imagecreatefromjpeg($sourcePath);
+            if ($image === false) {
+                $image = @imagecreatefrompng($sourcePath);
+            }
+            if ($image === false) {
+                return false;
+            }
+        }
+
+        $originalWidth = imagesx($image);
+        $originalHeight = imagesy($image);
+
+        // Максимальные размеры для товаров (можно настроить)
+        $maxWidth = 1200;
+        $maxHeight = 1600;
+
+        // Вычисление новых размеров с сохранением пропорций
+        $ratio = min($maxWidth / $originalWidth, $maxHeight / $originalHeight);
+        
+        // Если изображение меньше максимальных размеров, не увеличиваем
+        if ($ratio >= 1) {
+            $newWidth = $originalWidth;
+            $newHeight = $originalHeight;
+        } else {
+            $newWidth = (int) round($originalWidth * $ratio);
+            $newHeight = (int) round($originalHeight * $ratio);
+        }
+
+        // Создание нового изображения с измененным размером
+        $resized = imagecreatetruecolor($newWidth, $newHeight);
+        if ($resized === false) {
+            imagedestroy($image);
+            return false;
+        }
+
+        // Сохранение прозрачности для PNG
+        imagealphablending($resized, false);
+        imagesavealpha($resized, true);
+
+        // Изменение размера с высоким качеством
+        $success = imagecopyresampled(
+            $resized,
+            $image,
+            0, 0, 0, 0,
+            $newWidth,
+            $newHeight,
+            $originalWidth,
+            $originalHeight
+        );
+
+        imagedestroy($image);
+
+        if (!$success) {
+            imagedestroy($resized);
+            return false;
+        }
+
+        // Сохранение в WebP с качеством 85 (баланс между размером и качеством)
+        $saved = imagewebp($resized, $targetPath, 85);
+        imagedestroy($resized);
+
+        return $saved;
+    }
 }
+

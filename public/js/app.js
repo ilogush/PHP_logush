@@ -305,11 +305,50 @@
         update();
     }
 
+    function initReviews() {
+        const reviewsSection = document.querySelector('[aria-label="Отзывы наших клиентов"]');
+        if (!reviewsSection) return;
+
+        const reviewsContainer = reviewsSection.querySelector('.space-y-8');
+        const showAllButton = reviewsSection.querySelector('button');
+        
+        if (!reviewsContainer || !showAllButton) return;
+
+        const allReviews = reviewsContainer.querySelectorAll('blockquote');
+        const visibleCount = 3;
+
+        // Скрываем отзывы после третьего
+        allReviews.forEach(function(review, index) {
+            if (index >= visibleCount) {
+                review.style.display = 'none';
+                review.setAttribute('data-hidden-review', 'true');
+            }
+        });
+
+        // Скрываем кнопку если отзывов 3 или меньше
+        if (allReviews.length <= visibleCount) {
+            showAllButton.parentElement.style.display = 'none';
+        }
+
+        showAllButton.addEventListener('click', function() {
+            const hiddenReviews = reviewsContainer.querySelectorAll('[data-hidden-review="true"]');
+            
+            hiddenReviews.forEach(function(review) {
+                review.style.display = 'block';
+                review.removeAttribute('data-hidden-review');
+            });
+
+            // Скрываем кнопку после показа всех отзывов
+            showAllButton.parentElement.style.display = 'none';
+        });
+    }
+
     onReady(function () {
         initMobileMenu();
         initFAQ();
         initScrollAnimations();
         initCounterAnimations();
+        initReviews();
     });
 
     window.openModal = openModal;
@@ -319,3 +358,63 @@
     window.addToCart = addToCart;
     window.initSlider = initSlider;
 })();
+
+
+    // Инициализация слайдеров на главной странице
+    function initHomeSliders() {
+        // Hero слайдер
+        const heroSlider = document.querySelector('[data-hero-slider]');
+        if (heroSlider) {
+            const slides = Array.from(heroSlider.querySelectorAll('.hero-slide'));
+            if (slides.length > 1) {
+                let currentIndex = 0;
+                
+                function showNextSlide() {
+                    slides[currentIndex].classList.remove('active');
+                    currentIndex = (currentIndex + 1) % slides.length;
+                    slides[currentIndex].classList.add('active');
+                }
+                
+                setInterval(showNextSlide, 4000); // Смена каждые 4 секунды
+            }
+        }
+        
+        // Media strip слайдер
+        const mediaSlider = document.querySelector('[data-media-slider]');
+        if (mediaSlider) {
+            const slides = Array.from(mediaSlider.querySelectorAll('.media-slide'));
+            if (slides.length > 2) {
+                let currentIndex = 0;
+                
+                function showNextMediaSlide() {
+                    slides[currentIndex].classList.remove('active');
+                    if (currentIndex + 1 < slides.length) {
+                        slides[currentIndex + 1].classList.remove('active');
+                    }
+                    
+                    currentIndex = (currentIndex + 2) % slides.length;
+                    
+                    slides[currentIndex].classList.add('active');
+                    if (currentIndex + 1 < slides.length) {
+                        slides[currentIndex + 1].classList.add('active');
+                    } else {
+                        slides[0].classList.add('active');
+                    }
+                }
+                
+                // Показываем первые 2 слайда
+                if (slides.length > 1) {
+                    slides[1].classList.add('active');
+                }
+                
+                setInterval(showNextMediaSlide, 5000); // Смена каждые 5 секунд
+            }
+        }
+    }
+
+    onReady(function () {
+        initMobileMenu();
+        initFAQ();
+        initHomeSliders();
+        initReviews();
+    });

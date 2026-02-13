@@ -29,13 +29,23 @@ if (!is_array($slider2) || count($slider2) === 0) {
     </a>
   </div>
   <div class="hero-media">
-    <img src="<?= $e((string) $slider1[0]) ?>" alt="Производство Логуш">
+    <div class="hero-slider" data-hero-slider>
+      <?php foreach ($slider1 as $idx => $img): ?>
+        <img src="<?= $e((string) $img) ?>" alt="Производство Логуш <?= $e((string) ($idx + 1)) ?>" class="hero-slide <?= $idx === 0 ? 'active' : '' ?>">
+      <?php endforeach; ?>
+    </div>
   </div>
 </section>
 
 <section class="media-strip">
-  <img src="<?= $e((string) $slider1[min(1, count($slider1) - 1)]) ?>" alt="Швейное производство">
-  <img src="<?= $e((string) $slider2[0]) ?>" alt="Вязальное производство">
+  <div class="media-strip-slider" data-media-slider>
+    <?php 
+      $allImages = array_merge($slider1, $slider2);
+      foreach ($allImages as $idx => $img): 
+    ?>
+      <img src="<?= $e((string) $img) ?>" alt="Производство <?= $e((string) ($idx + 1)) ?>" class="media-slide <?= $idx === 0 ? 'active' : '' ?>">
+    <?php endforeach; ?>
+  </div>
 </section>
 
 <section class="section-head">

@@ -103,6 +103,7 @@ $pageTitle = match ($section) {
             <th class="<?= $e($th) ?>">Категория</th>
             <th class="<?= $e($th) ?>">Цвета</th>
             <th class="<?= $e($th) ?>">Размеры</th>
+            <th class="<?= $e($th) ?>">Остатки</th>
             <th class="<?= $e($th) ?> w-20"><span class="sr-only">Наличие</span></th>
             <th class="<?= $e($th) ?>">Действия</th>
           </tr>
@@ -110,7 +111,7 @@ $pageTitle = match ($section) {
         <tbody class="<?= $e($tbody) ?>">
           <?php if (!is_array($products) || count($products) === 0): ?>
             <tr>
-              <td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="8">Нет товаров</td>
+              <td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="9">Нет товаров</td>
             </tr>
           <?php else: ?>
             <?php foreach ($products as $item): ?>
@@ -126,6 +127,7 @@ $pageTitle = match ($section) {
                 $colorsList = is_array($item['colors'] ?? null) ? $item['colors'] : [];
                 $sizesList = is_array($item['sizes'] ?? null) ? $item['sizes'] : [];
                 $inStock = isset($item['inStock']) ? (bool) $item['inStock'] : true;
+                $stock = (int) ($item['stock'] ?? 0);
                 $searchText = implode(' ', array_filter([
                   $name,
                   $article,
@@ -165,6 +167,7 @@ $pageTitle = match ($section) {
                   </div>
                 </td>
                 <td class="<?= $e($td) ?> text-gray-600 text-sm"><?= $e(implode(', ', array_map('strval', $sizesList))) ?></td>
+                <td class="<?= $e($td) ?> text-gray-600 font-medium"><?= $e((string) $stock) ?></td>
                 <td class="<?= $e($td) ?>">
                   <span class="inline-flex items-center gap-2" title="<?= $e($inStock ? 'Статус: В наличии' : 'Статус: Нет в наличии') ?>">
                     <span class="inline-block h-3 w-3 rounded-full <?= $e($inStock ? 'bg-green-500' : 'bg-orange-500') ?>"></span>
@@ -343,7 +346,9 @@ $pageTitle = match ($section) {
                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.5h.008v.008h-.008V7.5Z"></path>
                   </svg>
                   <span class="text-sm text-gray-500">Добавить фото</span>
-                  <input type="file" accept="image/webp" multiple data-upload-images class="hidden">
+                  <span class="text-xs text-gray-400 mt-1">JPEG, PNG, WebP</span>
+                  <span class="text-xs text-gray-400">Авто-оптимизация</span>
+                  <input type="file" accept="image/webp,image/jpeg,image/png" multiple data-upload-images class="hidden">
                 </label>
             <?php endif; ?>
             </div>
@@ -414,7 +419,7 @@ $pageTitle = match ($section) {
 
             <div>
               <label class="block text-xs text-gray-600 mb-1">Остатки <span class="text-gray-500">*</span></label>
-              <input name="stock" type="number" required class="<?= $e($inputBase) ?>" value="<?= $e((string) $formDefaults['stock']) ?>" placeholder="0">
+              <input name="stock" type="number" required class="<?= $e($inputBase) ?>" value="<?= $e($formDefaults['stock'] > 0 ? (string) $formDefaults['stock'] : '') ?>" placeholder="0">
             </div>
 
             <div>
@@ -519,6 +524,21 @@ $pageTitle = match ($section) {
 
     $mainCategories = [];
     $rows = [];
+    
+    // Сначала собираем все подкатегории для каждой главной категории
+    $subCategoriesByParent = [];
+    foreach ($categoriesList as $c) {
+      if (!is_array($c)) continue;
+      $parentId = $c['parentId'] ?? null;
+      if ($parentId !== null && $parentId !== '') {
+        $parentIdStr = (string) $parentId;
+        if (!isset($subCategoriesByParent[$parentIdStr])) {
+          $subCategoriesByParent[$parentIdStr] = [];
+        }
+        $subCategoriesByParent[$parentIdStr][] = (string) ($c['name'] ?? '');
+      }
+    }
+    
     foreach ($categoriesList as $c) {
       if (!is_array($c)) continue;
       $id = (string) ($c['id'] ?? '');
@@ -536,10 +556,27 @@ $pageTitle = match ($section) {
         $mainCategories[] = ['id' => $id, 'name' => $name];
       }
 
+      // Подсчет товаров
       $count = 0;
-      foreach ($productsList as $p) {
-        if (!is_array($p)) continue;
-        if ((string) ($p['category'] ?? '') === $name) $count++;
+      if ($parentIdStr === null) {
+        // Для главной категории считаем товары этой категории + всех подкатегорий
+        $categoriesToCount = [$name];
+        if (isset($subCategoriesByParent[$id])) {
+          $categoriesToCount = array_merge($categoriesToCount, $subCategoriesByParent[$id]);
+        }
+        foreach ($productsList as $p) {
+          if (!is_array($p)) continue;
+          $productCategory = (string) ($p['category'] ?? '');
+          if (in_array($productCategory, $categoriesToCount, true)) {
+            $count++;
+          }
+        }
+      } else {
+        // Для подкатегории считаем только прямые совпадения
+        foreach ($productsList as $p) {
+          if (!is_array($p)) continue;
+          if ((string) ($p['category'] ?? '') === $name) $count++;
+        }
       }
 
       $rows[] = [
@@ -549,6 +586,17 @@ $pageTitle = match ($section) {
         'parentName' => $parentName,
         'productCount' => $count,
       ];
+    }
+
+    // Разделяем на главные категории и типы одежды
+    $mainCategoryRows = [];
+    $subCategoryRows = [];
+    foreach ($rows as $row) {
+      if ($row['parentId'] === null) {
+        $mainCategoryRows[] = $row;
+      } else {
+        $subCategoryRows[] = $row;
+      }
     }
   ?>
   <div>
@@ -561,60 +609,121 @@ $pageTitle = match ($section) {
         <button type="button" data-crud-open="category-create" class="<?= $e($btnPrimary) ?> md:whitespace-nowrap">+ Добавить категорию</button>
       </div>
     </div>
-    <div class="<?= $e($tableWrap) ?>">
-      <table class="<?= $e($table) ?>">
-        <thead class="<?= $e($thead) ?>">
-          <tr>
-            <th class="<?= $e($th) ?>">Категория</th>
-            <th class="<?= $e($th) ?>">Тип одежды</th>
-            <th class="<?= $e($th) ?>">Товаров</th>
-            <th class="<?= $e($th) ?>">Действия</th>
-          </tr>
-        </thead>
-        <tbody class="<?= $e($tbody) ?>">
-          <?php if (count($rows) === 0): ?>
-            <tr><td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="4">Нет категорий</td></tr>
-          <?php else: ?>
-            <?php foreach ($rows as $cat): ?>
-              <?php
-                $catId = (string) ($cat['id'] ?? '');
-                $catName = (string) ($cat['name'] ?? '');
-                $parentName = (string) ($cat['parentName'] ?? '');
-                $parentId = $cat['parentId'] ?? null;
-                $searchText = trim(($parentName ? $parentName . ' ' : '') . $catName);
-                $productCount = (int) ($cat['productCount'] ?? 0);
-              ?>
-              <tr class="hover:bg-gray-50 transition-colors" data-table-search-row data-search-text="<?= $e($searchText) ?>">
-                <td class="<?= $e($td) ?> font-medium text-gray-900"><?= $e($parentName !== '' ? $parentName : $catName) ?></td>
-                <td class="<?= $e($td) ?> text-gray-600"><?= $e($parentName !== '' ? $catName : '—') ?></td>
-                <td class="<?= $e($td) ?> text-gray-600"><?= $e((string) $productCount) ?></td>
-                <td class="<?= $e($td) ?> whitespace-nowrap">
-                  <div class="flex gap-2 justify-start">
-                    <button
-                      type="button"
-                      data-crud-open="category-edit"
-                      data-id="<?= $e($catId) ?>"
-                      data-name="<?= $e($catName) ?>"
-                      data-parent-id="<?= $e((string) ($parentId ?? '')) ?>"
-                      class="<?= $e($btnSecondaryIcon) ?>"
-                      title="Просмотр категории"
-                      aria-label="Просмотр категории"
-                    ><?= $eyeIcon ?></button>
-                    <button
-                      type="button"
-                      data-crud-delete="category"
-                      data-id="<?= $e($catId) ?>"
-                      class="<?= $e($btnSecondaryIcon) ?>"
-                      title="Удалить категорию"
-                      aria-label="Удалить категорию"
-                    ><?= $trashIcon ?></button>
-                  </div>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </tbody>
-      </table>
+
+    <!-- Таблица главных категорий -->
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-3">Категории</h3>
+      <div class="<?= $e($tableWrap) ?>">
+        <table class="<?= $e($table) ?>">
+          <thead class="<?= $e($thead) ?>">
+            <tr>
+              <th class="<?= $e($th) ?>">Название</th>
+              <th class="<?= $e($th) ?>">Товаров</th>
+              <th class="<?= $e($th) ?>">Действия</th>
+            </tr>
+          </thead>
+          <tbody class="<?= $e($tbody) ?>">
+            <?php if (count($mainCategoryRows) === 0): ?>
+              <tr><td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="3">Нет категорий</td></tr>
+            <?php else: ?>
+              <?php foreach ($mainCategoryRows as $cat): ?>
+                <?php
+                  $catId = (string) ($cat['id'] ?? '');
+                  $catName = (string) ($cat['name'] ?? '');
+                  $parentId = $cat['parentId'] ?? null;
+                  $productCount = (int) ($cat['productCount'] ?? 0);
+                ?>
+                <tr class="hover:bg-gray-50 transition-colors" data-table-search-row data-search-text="<?= $e($catName) ?>">
+                  <td class="<?= $e($td) ?> font-medium text-gray-900"><?= $e($catName) ?></td>
+                  <td class="<?= $e($td) ?> text-gray-600"><?= $e((string) $productCount) ?></td>
+                  <td class="<?= $e($td) ?> whitespace-nowrap">
+                    <div class="flex gap-2 justify-start">
+                      <button
+                        type="button"
+                        data-crud-open="category-edit"
+                        data-id="<?= $e($catId) ?>"
+                        data-name="<?= $e($catName) ?>"
+                        data-parent-id="<?= $e((string) ($parentId ?? '')) ?>"
+                        class="<?= $e($btnSecondaryIcon) ?>"
+                        title="Просмотр категории"
+                        aria-label="Просмотр категории"
+                      ><?= $eyeIcon ?></button>
+                      <button
+                        type="button"
+                        data-crud-delete="category"
+                        data-id="<?= $e($catId) ?>"
+                        class="<?= $e($btnSecondaryIcon) ?>"
+                        title="Удалить категорию"
+                        aria-label="Удалить категорию"
+                      ><?= $trashIcon ?></button>
+                    </div>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Таблица типов одежды -->
+    <div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-3">Типы одежды</h3>
+      <div class="<?= $e($tableWrap) ?>">
+        <table class="<?= $e($table) ?>">
+          <thead class="<?= $e($thead) ?>">
+            <tr>
+              <th class="<?= $e($th) ?>">Категория</th>
+              <th class="<?= $e($th) ?>">Тип одежды</th>
+              <th class="<?= $e($th) ?>">Товаров</th>
+              <th class="<?= $e($th) ?>">Действия</th>
+            </tr>
+          </thead>
+          <tbody class="<?= $e($tbody) ?>">
+            <?php if (count($subCategoryRows) === 0): ?>
+              <tr><td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="4">Нет типов одежды</td></tr>
+            <?php else: ?>
+              <?php foreach ($subCategoryRows as $cat): ?>
+                <?php
+                  $catId = (string) ($cat['id'] ?? '');
+                  $catName = (string) ($cat['name'] ?? '');
+                  $parentName = (string) ($cat['parentName'] ?? '');
+                  $parentId = $cat['parentId'] ?? null;
+                  $searchText = trim($parentName . ' ' . $catName);
+                  $productCount = (int) ($cat['productCount'] ?? 0);
+                ?>
+                <tr class="hover:bg-gray-50 transition-colors" data-table-search-row data-search-text="<?= $e($searchText) ?>">
+                  <td class="<?= $e($td) ?> font-medium text-gray-900"><?= $e($parentName) ?></td>
+                  <td class="<?= $e($td) ?> text-gray-600"><?= $e($catName) ?></td>
+                  <td class="<?= $e($td) ?> text-gray-600"><?= $e((string) $productCount) ?></td>
+                  <td class="<?= $e($td) ?> whitespace-nowrap">
+                    <div class="flex gap-2 justify-start">
+                      <button
+                        type="button"
+                        data-crud-open="category-edit"
+                        data-id="<?= $e($catId) ?>"
+                        data-name="<?= $e($catName) ?>"
+                        data-parent-id="<?= $e((string) ($parentId ?? '')) ?>"
+                        class="<?= $e($btnSecondaryIcon) ?>"
+                        title="Просмотр типа одежды"
+                        aria-label="Просмотр типа одежды"
+                      ><?= $eyeIcon ?></button>
+                      <button
+                        type="button"
+                        data-crud-delete="category"
+                        data-id="<?= $e($catId) ?>"
+                        class="<?= $e($btnSecondaryIcon) ?>"
+                        title="Удалить тип одежды"
+                        aria-label="Удалить тип одежды"
+                      ><?= $trashIcon ?></button>
+                    </div>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
     <script type="application/json" id="adminCategoryParents"><?= json_encode($mainCategories, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
   </div>
@@ -639,6 +748,52 @@ $pageTitle = match ($section) {
         ];
       }
     }
+
+    // Функция для конвертации цвета в яркость (от светлого к темному)
+    $resolveColorHexForSort = static function (string $value): string {
+      $trimmed = trim($value);
+      $normalized = function_exists('mb_strtolower')
+        ? (string) mb_strtolower($trimmed, 'UTF-8')
+        : strtolower($trimmed);
+      if ($normalized === '') return '#9ca3af';
+      if (preg_match('/^#([0-9a-f]{3}|[0-9a-f]{6})$/i', $normalized) === 1) return $normalized;
+      $map = [
+        'белый' => '#ffffff',
+        'бежевый' => '#d6bfa6',
+        'желтый' => '#eab308',
+        'оранжевый' => '#f97316',
+        'розовый' => '#ec4899',
+        'красный' => '#ef4444',
+        'фиолетовый' => '#8b5cf6',
+        'голубой' => '#38bdf8',
+        'синий' => '#2563eb',
+        'зеленый' => '#22c55e',
+        'коричневый' => '#8b5e3c',
+        'серый' => '#9ca3af',
+        'черный' => '#111827',
+      ];
+      return $map[$normalized] ?? '#9ca3af';
+    };
+
+    $getBrightness = static function (string $hex): float {
+      $hex = ltrim($hex, '#');
+      if (strlen($hex) === 3) {
+        $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+      }
+      $r = hexdec(substr($hex, 0, 2));
+      $g = hexdec(substr($hex, 2, 2));
+      $b = hexdec(substr($hex, 4, 2));
+      return ($r * 299 + $g * 587 + $b * 114) / 1000;
+    };
+
+    // Сортировка цветов от светлого к темному
+    usort($colorRows, static function (array $a, array $b) use ($resolveColorHexForSort, $getBrightness): int {
+      $aHex = $resolveColorHexForSort((string) ($a['name'] ?? ''));
+      $bHex = $resolveColorHexForSort((string) ($b['name'] ?? ''));
+      $aBrightness = $getBrightness($aHex);
+      $bBrightness = $getBrightness($bHex);
+      return $bBrightness <=> $aBrightness; // От светлого к темному
+    });
   ?>
   <div>
     <div class="mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
@@ -721,6 +876,31 @@ $pageTitle = match ($section) {
         ];
       }
     }
+
+    // Сортировка размеров от меньшего к большему
+    $sizeOrder = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+    usort($sizeRows, static function (array $a, array $b) use ($sizeOrder): int {
+      $normalize = static fn (string $v): string => strtoupper(trim($v));
+      $an = $normalize((string) ($a['name'] ?? ''));
+      $bn = $normalize((string) ($b['name'] ?? ''));
+
+      $ai = array_search($an, $sizeOrder, true);
+      $bi = array_search($bn, $sizeOrder, true);
+      $ai = ($ai === false) ? -1 : (int) $ai;
+      $bi = ($bi === false) ? -1 : (int) $bi;
+      if ($ai !== -1 || $bi !== -1) {
+        return ($ai === -1 ? count($sizeOrder) : $ai) <=> ($bi === -1 ? count($sizeOrder) : $bi);
+      }
+
+      $aNum = (float) str_replace(',', '.', $an);
+      $bNum = (float) str_replace(',', '.', $bn);
+      $aHas = is_numeric(str_replace(',', '.', $an));
+      $bHas = is_numeric(str_replace(',', '.', $bn));
+      if ($aHas && $bHas) return $aNum <=> $bNum;
+      if ($aHas) return -1;
+      if ($bHas) return 1;
+      return $an <=> $bn;
+    });
   ?>
   <div>
     <div class="mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
@@ -803,6 +983,8 @@ $pageTitle = match ($section) {
             <th class="<?= $e($th) ?> w-28">№ Заказа</th>
             <th class="<?= $e($th) ?> w-52">Клиент</th>
             <th class="<?= $e($th) ?>">Товары</th>
+            <th class="<?= $e($th) ?> w-32">Цвета</th>
+            <th class="<?= $e($th) ?> w-32">Размеры</th>
             <th class="<?= $e($th) ?> w-36">Сумма</th>
             <th class="<?= $e($th) ?> w-20"><span class="sr-only">Статус</span></th>
             <th class="<?= $e($th) ?> w-44">Дата</th>
@@ -811,7 +993,7 @@ $pageTitle = match ($section) {
         </thead>
         <tbody class="<?= $e($tbody) ?>">
           <?php if (!is_array($orders) || count($orders) === 0): ?>
-            <tr><td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="7">Нет заказов</td></tr>
+            <tr><td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="9">Нет заказов</td></tr>
           <?php else: ?>
             <?php foreach ($orders as $order): ?>
               <?php if (!is_array($order)) { continue; } ?>
@@ -842,10 +1024,48 @@ $pageTitle = match ($section) {
                         if ($shown >= 2) break;
                         if (!is_array($it)) continue;
                         $line = (string) ($it['productName'] ?? '');
-                        $line .= ' (' . (string) ($it['color'] ?? '') . '/' . (string) ($it['size'] ?? '') . ')';
                         $line .= ' × ' . (string) ((int) ($it['quantity'] ?? 0));
                         $shown++;
                         echo '<div class="truncate">' . $e($line) . '</div>';
+                      }
+                      $rest = max(0, count($items) - $shown);
+                      if ($rest > 0) {
+                        echo '<div class="text-xs text-gray-500">+ еще ' . $e((string) $rest) . '</div>';
+                      }
+                    ?>
+                  </div>
+                </td>
+                <td class="<?= $e($td) ?> text-sm text-gray-600">
+                  <div class="space-y-1">
+                    <?php
+                      $shown = 0;
+                      foreach ($items as $idx => $it) {
+                        if ($shown >= 2) break;
+                        if (!is_array($it)) continue;
+                        $color = (string) ($it['color'] ?? '');
+                        $shown++;
+                        echo '<div class="flex items-center gap-2">';
+                        echo '<span class="inline-block h-3 w-3 rounded-full border border-gray-300" style="background-color: ' . $e($resolveColorHex($color)) . ';" title="' . $e($color) . '"></span>';
+                        echo '<span>' . $e($color) . '</span>';
+                        echo '</div>';
+                      }
+                      $rest = max(0, count($items) - $shown);
+                      if ($rest > 0) {
+                        echo '<div class="text-xs text-gray-500">+ еще ' . $e((string) $rest) . '</div>';
+                      }
+                    ?>
+                  </div>
+                </td>
+                <td class="<?= $e($td) ?> text-sm text-gray-600">
+                  <div class="space-y-1">
+                    <?php
+                      $shown = 0;
+                      foreach ($items as $idx => $it) {
+                        if ($shown >= 2) break;
+                        if (!is_array($it)) continue;
+                        $size = (string) ($it['size'] ?? '');
+                        $shown++;
+                        echo '<div>' . $e($size) . '</div>';
                       }
                       $rest = max(0, count($items) - $shown);
                       if ($rest > 0) {
@@ -916,48 +1136,55 @@ $pageTitle = match ($section) {
       </div>
 
       <div class="rounded-3xl bg-white p-6 shadow-sm">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <p class="text-xs text-gray-500">Клиент</p>
-            <p class="font-medium text-gray-900"><?= $e((string) ($order['customerName'] ?? '')) ?></p>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <p class="text-xs text-gray-500">Клиент</p>
+              <p class="font-medium text-gray-900"><?= $e((string) ($order['customerName'] ?? '')) ?></p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Email</p>
+              <p class="font-medium text-gray-900"><?= $e((string) ($order['customerEmail'] ?? '')) ?></p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Телефон</p>
+              <p class="font-medium text-gray-900"><?= $e((string) ($order['customerPhone'] ?? '')) ?></p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Создан</p>
+              <p class="font-medium text-gray-900"><?= $e($formatDateFull((string) ($order['createdAt'] ?? ''))) ?></p>
+            </div>
           </div>
+          
           <div>
-            <p class="text-xs text-gray-500">Email</p>
-            <p class="font-medium text-gray-900"><?= $e((string) ($order['customerEmail'] ?? '')) ?></p>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500">Телефон</p>
-            <p class="font-medium text-gray-900"><?= $e((string) ($order['customerPhone'] ?? '')) ?></p>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500">Создан</p>
-            <p class="font-medium text-gray-900"><?= $e($formatDateFull((string) ($order['createdAt'] ?? ''))) ?></p>
-          </div>
-          <div class="md:col-span-2 lg:col-span-4">
             <p class="text-xs text-gray-500">Адрес доставки</p>
             <p class="font-medium text-gray-900"><?= $e((string) ($order['deliveryAddress'] ?? '')) ?></p>
           </div>
-          <div>
-            <p class="text-xs text-gray-500">Способ оплаты</p>
-            <p class="font-medium text-gray-900"><?= $e((string) ($order['paymentMethod'] ?? '')) ?></p>
+          
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <p class="text-xs text-gray-500">Способ оплаты</p>
+              <p class="font-medium text-gray-900"><?= $e((string) ($order['paymentMethod'] ?? '')) ?></p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Текущий статус</p>
+              <span class="inline-flex items-center gap-2" title="<?= $e('Статус: ' . ($orderStatusLabels[$status] ?? $status)) ?>">
+                <span class="inline-block h-3 w-3 rounded-full <?= $e($orderStatusDot[$status] ?? 'bg-orange-500') ?>"></span>
+                <span class="text-sm text-gray-700"><?= $e($orderStatusLabels[$status] ?? $status) ?></span>
+              </span>
+            </div>
+            <div class="lg:col-span-2">
+              <label class="block text-xs text-gray-600 mb-1">Статус заказа <span class="text-gray-500">*</span></label>
+              <select name="status" data-order-status class="<?= $e($inputBase) ?>">
+                <?php foreach ($orderStatusLabels as $value => $label): ?>
+                  <option value="<?= $e($value) ?>" <?= $status === $value ? 'selected' : '' ?>><?= $e($label) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
           </div>
-          <div>
-            <p class="text-xs text-gray-500">Текущий статус</p>
-            <span class="inline-flex items-center gap-2" title="<?= $e('Статус: ' . ($orderStatusLabels[$status] ?? $status)) ?>">
-              <span class="inline-block h-3 w-3 rounded-full <?= $e($orderStatusDot[$status] ?? 'bg-orange-500') ?>"></span>
-              <span class="text-sm text-gray-700"><?= $e($orderStatusLabels[$status] ?? $status) ?></span>
-            </span>
-          </div>
-          <div>
-            <label class="block text-xs text-gray-600 mb-1">Статус заказа <span class="text-gray-500">*</span></label>
-            <select name="status" data-order-status class="<?= $e($inputBase) ?>">
-              <?php foreach ($orderStatusLabels as $value => $label): ?>
-                <option value="<?= $e($value) ?>" <?= $status === $value ? 'selected' : '' ?>><?= $e($label) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="flex items-end">
-            <button type="button" class="<?= $e($btnPrimary) ?> h-10 w-full whitespace-nowrap" data-order-save>Сохранить</button>
+          
+          <div class="flex justify-end">
+            <button type="button" class="<?= $e($btnPrimary) ?> h-10 px-8 whitespace-nowrap" data-order-save>Сохранить</button>
           </div>
         </div>
       </div>
@@ -1252,7 +1479,7 @@ $pageTitle = match ($section) {
 
           <?php if ($isAdminUser): ?>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-              <div>
+              <div class="md:col-span-2">
                 <label class="block text-xs text-gray-600 mb-1">Новый пароль</label>
                 <div class="flex rounded-lg" data-password-field>
                   <input name="password" type="password" class="<?= $e($inputBase) ?> rounded-r-none" placeholder="Оставьте пустым, чтобы не менять" data-password-input>
@@ -1269,7 +1496,7 @@ $pageTitle = match ($section) {
                   </button>
                 </div>
               </div>
-              <div>
+              <div class="md:col-span-2">
                 <label class="block text-xs text-gray-600 mb-1">Подтверждение пароля</label>
                 <div class="flex rounded-lg" data-password-field>
                   <input name="confirmPassword" type="password" class="<?= $e($inputBase) ?> rounded-r-none" placeholder="Повторите новый пароль" data-password-input>
@@ -1293,7 +1520,7 @@ $pageTitle = match ($section) {
             </div>
           <?php endif; ?>
 
-          <div class="grid grid-cols-1 gap-4 text-sm text-gray-600 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 text-sm text-gray-600 md:grid-cols-4">
             <div>Заказов: <?= $e((string) $orderCount) ?></div>
             <div>Сумма покупок: <?= $e(number_format($totalSpent, 0, '.', ' ')) ?> ₽</div>
             <div>Первый заказ: <?= $e($formatDateUi($firstOrderAt)) ?></div>
@@ -1390,7 +1617,7 @@ $pageTitle = match ($section) {
     <div class="mb-4 flex flex-wrap gap-2">
       <?php foreach ($tabs as $idx => $tab): ?>
         <?php
-          $active = ($tab['key'] ?? '') === 'contacts';
+          $active = ($tab['key'] ?? '') === 'home';
           $cls = $active ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-blue-400 hover:text-white';
         ?>
         <button
@@ -1401,8 +1628,8 @@ $pageTitle = match ($section) {
       <?php endforeach; ?>
     </div>
 
-    <form data-settings-form data-settings-default-tab="contacts" class="bg-white rounded-3xl shadow-sm p-6 space-y-6">
-      <div data-settings-tab-pane="contacts">
+    <form data-settings-form data-settings-default-tab="home" class="bg-white rounded-3xl shadow-sm p-6 space-y-6">
+      <div class="hidden" data-settings-tab-pane="contacts">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Контакты</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
