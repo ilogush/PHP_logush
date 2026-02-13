@@ -809,6 +809,82 @@
     });
   };
 
+  const initUserCreate = () => {
+    const form = qs("[data-create-user-form]");
+    if (!form) return;
+
+    // Password visibility toggles
+    form.querySelectorAll("[data-password-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const wrap = btn.closest("[data-password-field]");
+        const input = wrap ? wrap.querySelector("[data-password-input]") : null;
+        if (!input) return;
+        const isHidden = input.getAttribute("type") === "password";
+        input.setAttribute("type", isHidden ? "text" : "password");
+        btn.setAttribute("aria-label", isHidden ? "Скрыть пароль" : "Показать пароль");
+      });
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fd = new FormData(form);
+      const name = String(fd.get("name") || "").trim();
+      const email = String(fd.get("email") || "").trim();
+      const phone = String(fd.get("phone") || "").trim();
+      const address = String(fd.get("address") || "").trim();
+      const role = String(fd.get("role") || "").trim();
+      const password = String(fd.get("password") || "");
+      const confirmPassword = String(fd.get("confirmPassword") || "");
+
+      if (!name || !email || !role || !password) {
+        showToast("Заполните все обязательные поля", "warning");
+        return;
+      }
+
+      // Basic client-side validation (server also validates).
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast("Некорректный email", "error");
+        return;
+      }
+
+      if (password.length < 8) {
+        showToast("Пароль должен быть минимум 8 символов", "error");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showToast("Пароли не совпадают", "error");
+        return;
+      }
+
+      const submitBtn = form.querySelector("button[type='submit']");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Создание...";
+      }
+
+      const payload = { name, email, phone, address, role, password };
+      const res = await apiJson("/api/users", "POST", payload);
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Создать пользователя";
+      }
+
+      if (!res.ok) {
+        const msg = (res.data && (res.data.error || res.data.message)) 
+          ? String(res.data.error || res.data.message) 
+          : "Ошибка создания пользователя";
+        showToast(msg, "error");
+        return;
+      }
+
+      showToast("Пользователь успешно создан", "success");
+      window.setTimeout(() => (window.location.href = "/admin/users"), 600);
+    });
+  };
+
   const initUserEdit = () => {
     const form = qs("form[data-user-edit-form]");
     if (!form) return;
@@ -913,6 +989,15 @@
         window.setTimeout(() => (window.location.href = "/admin/users"), 600);
       });
     }
+  };
+
+  const initCustomerEditDisabled = () => {
+    qsa("[data-customer-edit-disabled]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        showToast("Для клиентов редактирование недоступно: данные формируются автоматически из заказов.", "warning");
+      });
+    });
   };
 
   const initSettings = () => {
@@ -1195,12 +1280,17 @@
   };
 
   const initLoginPasswordToggle = () => {
-    const btn = qs("[data-toggle-password]");
-    const input = qs("[data-password-input]");
-    if (!btn || !input) return;
-    btn.addEventListener("click", () => {
-      const next = input.getAttribute("type") === "password" ? "text" : "password";
-      input.setAttribute("type", next);
+    qsa("[data-toggle-password]").forEach((btn) => {
+      // Prefer input in the same field wrapper (login page).
+      const wrap = btn.closest("div");
+      const input = (wrap ? wrap.querySelector("[data-password-input]") : null) || qs("[data-password-input]");
+      if (!input) return;
+      btn.addEventListener("click", () => {
+        const toText = input.getAttribute("type") === "password";
+        input.setAttribute("type", toText ? "text" : "password");
+        btn.setAttribute("aria-pressed", toText ? "true" : "false");
+        btn.setAttribute("aria-label", toText ? "Скрыть пароль" : "Показать пароль");
+      });
     });
   };
 
@@ -1217,7 +1307,9 @@
     initProductDelete();
     initOrderDetails();
     initOrderDelete();
+    initUserCreate();
     initUserEdit();
+    initCustomerEditDisabled();
     initSettings();
     initTableSearch();
   });

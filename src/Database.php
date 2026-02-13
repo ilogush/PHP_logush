@@ -50,10 +50,11 @@ final class Database
             // Some shared hostings require "localhost" even if they display a node hostname in panel.
             // We'll try DB_HOST first, then common local fallbacks.
             $portResolved = ($port !== '' ? $port : '3306');
+            // Prefer the configured host and "localhost" only.
+            // 127.0.0.1 may be denied on shared hosting (Host ... is not allowed to connect).
             $hosts = array_values(array_unique(array_filter([
                 $host,
                 ($host !== 'localhost' ? 'localhost' : null),
-                ($host !== '127.0.0.1' ? '127.0.0.1' : null),
             ])));
         }
 

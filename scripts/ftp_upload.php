@@ -35,8 +35,8 @@ if (!ftp_login($conn, $ftpUser, $ftpPass)) {
 ftp_pasv($conn, true);
 echo "✅ Подключение установлено\n\n";
 
-// Increase timeouts for shared hosting.
-ftp_set_option($conn, FTP_TIMEOUT_SEC, 60);
+// Increase timeouts for shared hosting and large files.
+ftp_set_option($conn, FTP_TIMEOUT_SEC, 300); // 5 минут для больших файлов
 
 // Функция для создания директории рекурсивно
 function ftpMkdir($conn, $dir) {
@@ -58,14 +58,14 @@ function ftpMkdir($conn, $dir) {
     return true;
 }
 
-function uploadFileIfChanged($conn, string $localPath, string $remotePath, int &$uploaded, int &$failed): void
+function uploadFileIfChanged($conn, string $localPath, string $remotePath, int &$uploaded, int &$failed, int $maxRetries = 3): void
 {
     if (!is_file($localPath)) {
         return;
     }
 
     $localSize = filesize($localPath);
-    $remoteSize = ftp_size($conn, $remotePath);
+    $remoteSize = @ftp_size($conn, $remotePath);
 
     if ($remoteSize !== -1 && $localSize !== false && (int) $remoteSize === (int) $localSize) {
         return;
@@ -75,10 +75,19 @@ function uploadFileIfChanged($conn, string $localPath, string $remotePath, int &
     ftpMkdir($conn, $remoteDir);
 
     echo "📤 Загрузка: " . basename($localPath);
-    if (@ftp_put($conn, $remotePath, $localPath, FTP_BINARY)) {
-        echo " ✅\n";
-        $uploaded++;
-        return;
+    
+    // Попытки загрузки с повторами при таймауте
+    for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+        if (@ftp_put($conn, $remotePath, $localPath, FTP_BINARY)) {
+            echo " ✅\n";
+            $uploaded++;
+            return;
+        }
+        
+        if ($attempt < $maxRetries) {
+            echo " ⏳ (попытка {$attempt}/{$maxRetries})";
+            sleep(2); // Пауза перед повтором
+        }
     }
 
     echo " ❌\n";
@@ -111,7 +120,7 @@ function uploadDirectory($conn, $localDir, $remoteDir, &$uploaded, &$failed) {
             uploadDirectory($conn, $localPath, $remotePath, $uploaded, $failed);
         } else {
             $localSize = filesize($localPath);
-            $remoteSize = ftp_size($conn, $remotePath);
+            $remoteSize = @ftp_size($conn, $remotePath);
 
             // Загружаем только если файла нет на сервере или отличается по размеру.
             if ($remoteSize !== -1 && $localSize !== false && (int) $remoteSize === (int) $localSize) {
@@ -119,10 +128,25 @@ function uploadDirectory($conn, $localDir, $remoteDir, &$uploaded, &$failed) {
             }
 
             echo "📤 Загрузка: {$item}";
-            if (ftp_put($conn, $remotePath, $localPath, FTP_BINARY)) {
-                echo " ✅\n";
-                $uploaded++;
-            } else {
+            
+            // Попытки загрузки с повторами при таймауте
+            $maxRetries = 3;
+            $success = false;
+            for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+                if (@ftp_put($conn, $remotePath, $localPath, FTP_BINARY)) {
+                    echo " ✅\n";
+                    $uploaded++;
+                    $success = true;
+                    break;
+                }
+                
+                if ($attempt < $maxRetries) {
+                    echo " ⏳ (попытка {$attempt}/{$maxRetries})";
+                    sleep(2); // Пауза перед повтором
+                }
+            }
+            
+            if (!$success) {
                 echo " ❌\n";
                 $failed++;
             }
@@ -162,8 +186,10 @@ if (is_array($argv) && count($argv) > 1) {
     exit($failed === 0 ? 0 : 1);
 }
 
-// Загружаем все необходимые папки
-$folders = ['public', 'src', 'views', 'scripts'];
+// Загружаем только то, что нужно для продакшена.
+// Важно: SSR-снапшоты используются для публичных страниц, поэтому storage/ssr обязателен.
+// scripts не выгружаем, чтобы не тащить dev/maintenance утилиты на хостинг.
+$folders = ['public', 'src', 'views', 'storage'];
 
 foreach ($folders as $folder) {
     $localPath = $projectDir . '/' . $folder;
@@ -186,17 +212,32 @@ foreach ($rootFiles as $file) {
         // .env всегда грузим (даже если размер совпал), потому что там могут меняться пароли.
         if ($file !== '.env') {
             $localSize = filesize($localPath);
-            $remoteSize = ftp_size($conn, $remotePath);
+            $remoteSize = @ftp_size($conn, $remotePath);
             if ($remoteSize !== -1 && $localSize !== false && (int) $remoteSize === (int) $localSize) {
                 continue;
             }
         }
 
         echo "📤 Загрузка: {$file}";
-        if (ftp_put($conn, $remotePath, $localPath, FTP_BINARY)) {
-            echo " ✅\n";
-            $uploaded++;
-        } else {
+        
+        // Попытки загрузки с повторами при таймауте
+        $maxRetries = 3;
+        $success = false;
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            if (@ftp_put($conn, $remotePath, $localPath, FTP_BINARY)) {
+                echo " ✅\n";
+                $uploaded++;
+                $success = true;
+                break;
+            }
+            
+            if ($attempt < $maxRetries) {
+                echo " ⏳ (попытка {$attempt}/{$maxRetries})";
+                sleep(2);
+            }
+        }
+        
+        if (!$success) {
             echo " ❌\n";
             $failed++;
         }

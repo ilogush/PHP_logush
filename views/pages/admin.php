@@ -6,7 +6,7 @@ $btnPrimary = 'flex items-center justify-center transition-colors disabled:opaci
 $btnSecondaryIcon = 'flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-400 text-white border border-transparent hover:bg-blue-500 font-medium rounded-lg h-10 w-10 p-0';
 
 $tableWrap = 'w-full max-w-full bg-white shadow-sm border border-gray-100 overflow-hidden rounded-xl touch-pan-y';
-$table = 'w-full table-fixed divide-y divide-gray-100';
+$table = 'w-full table-auto divide-y divide-gray-100';
 $thead = 'bg-gray-50';
 $tbody = 'bg-white divide-y divide-gray-100';
 $th = 'px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider';
@@ -70,7 +70,7 @@ $pageTitle = match ($section) {
   'colors' => 'Цвета',
   'sizes' => 'Размеры',
   'orders', 'order-show' => 'Заказы',
-  'users', 'users-edit' => 'Пользователи',
+  'users', 'users-new', 'users-edit' => 'Пользователи',
   'settings' => 'Настройки',
   default => 'Админ панель',
 };
@@ -1118,15 +1118,15 @@ $pageTitle = match ($section) {
       <table class="<?= $e($table) ?>">
         <thead class="<?= $e($thead) ?>">
           <tr>
-            <th class="<?= $e($th) ?> w-28">№ Заказа</th>
-            <th class="<?= $e($th) ?> w-52">Клиент</th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">№ Заказа</th>
+            <th class="<?= $e($th) ?>">Клиент</th>
             <th class="<?= $e($th) ?>">Товары</th>
-            <th class="<?= $e($th) ?> w-32">Цвета</th>
-            <th class="<?= $e($th) ?> w-32">Размеры</th>
-            <th class="<?= $e($th) ?> w-36">Сумма</th>
-            <th class="<?= $e($th) ?> w-20"><span class="sr-only">Статус</span></th>
-            <th class="<?= $e($th) ?> w-44">Дата</th>
-            <th class="<?= $e($th) ?> w-32">Действия</th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">Цвета</th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">Размеры</th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">Сумма</th>
+            <th class="<?= $e($th) ?>"><span class="sr-only">Статус</span></th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">Дата</th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">Действия</th>
           </tr>
         </thead>
         <tbody class="<?= $e($tbody) ?>">
@@ -1182,9 +1182,8 @@ $pageTitle = match ($section) {
                         if (!is_array($it)) continue;
                         $color = (string) ($it['color'] ?? '');
                         $shown++;
-                        echo '<div class="flex items-center gap-2">';
+                        echo '<div class="flex items-center">';
                         echo '<span class="inline-block h-3 w-3 rounded-full border border-gray-300" style="background-color: ' . $e($resolveColorHex($color)) . ';" title="' . $e($color) . '"></span>';
-                        echo '<span>' . $e($color) . '</span>';
                         echo '</div>';
                       }
                       $rest = max(0, count($items) - $shown);
@@ -1330,7 +1329,7 @@ $pageTitle = match ($section) {
       <div class="rounded-3xl bg-white p-6 shadow-sm">
         <h3 class="mb-4 text-lg font-semibold text-gray-900">Товары</h3>
         <div class="w-full max-w-full bg-white overflow-hidden rounded-xl touch-pan-y border-0 shadow-none">
-          <table class="w-full table-fixed divide-y divide-gray-100">
+          <table class="w-full table-auto divide-y divide-gray-100">
             <thead class="<?= $e($thead) ?>">
               <tr>
                 <th class="<?= $e($th) ?>">Товар</th>
@@ -1483,8 +1482,11 @@ $pageTitle = match ($section) {
           <h2 class="text-2xl font-semibold text-gray-900"><?= $e($pageTitle) ?></h2>
           <p class="mt-1 text-sm text-gray-600">Всего пользователей: <?= $e((string) count($clients)) ?></p>
         </div>
-        <div class="w-full xl:w-96">
-          <input data-table-search-input type="text" class="<?= $e($inputBase) ?>" placeholder="Поиск по имени, телефону, email, роли" value="">
+        <div class="flex w-full flex-col gap-3 md:flex-row xl:w-auto">
+          <div class="w-full md:w-[28rem]">
+            <input data-table-search-input type="text" class="<?= $e($inputBase) ?>" placeholder="Поиск по имени, телефону, email, роли" value="">
+          </div>
+          <a href="/admin/users/new" class="<?= $e($btnPrimary) ?> md:whitespace-nowrap">+ Добавить пользователя</a>
         </div>
       </div>
       <div class="<?= $e($tableWrap) ?>">
@@ -1511,6 +1513,7 @@ $pageTitle = match ($section) {
                   $email = (string) ($u['email'] ?? '');
                   $phone = (string) ($u['phone'] ?? '');
                   $role = (string) ($u['role'] ?? '');
+                  $userType = (string) ($u['userType'] ?? '');
                   $orderCount = (int) ($u['orderCount'] ?? 0);
                   $totalSpent = (float) ($u['totalSpent'] ?? 0);
                   $lastOrderAt = (string) ($u['lastOrderAt'] ?? '');
@@ -1534,12 +1537,22 @@ $pageTitle = match ($section) {
                   <td class="<?= $e($td) ?> text-sm text-gray-600"><?= $e($formatDateUi($lastOrderAt)) ?></td>
                   <td class="<?= $e($td) ?> whitespace-nowrap">
                     <div class="flex gap-2 justify-start">
-                      <a
-                        href="/admin/users/edit?id=<?= $e(rawurlencode($id)) ?>"
-                        class="<?= $e($btnSecondaryIcon) ?> h-8 w-8 p-0"
-                        title="Редактировать пользователя"
-                        aria-label="Редактировать пользователя"
-                      ><?= $eyeIcon ?></a>
+                      <?php if ($userType === 'customer'): ?>
+                        <button
+                          type="button"
+                          data-customer-edit-disabled
+                          class="<?= $e($btnSecondaryIcon) ?> h-8 w-8 p-0 opacity-50"
+                          title="Редактирование недоступно"
+                          aria-label="Редактирование недоступно"
+                        ><?= $eyeIcon ?></button>
+                      <?php else: ?>
+                        <a
+                          href="/admin/users/edit?id=<?= $e(rawurlencode($id)) ?>"
+                          class="<?= $e($btnSecondaryIcon) ?> h-8 w-8 p-0"
+                          title="Редактировать пользователя"
+                          aria-label="Редактировать пользователя"
+                        ><?= $eyeIcon ?></a>
+                      <?php endif; ?>
                     </div>
                   </td>
                 </tr>
@@ -1549,7 +1562,75 @@ $pageTitle = match ($section) {
         </table>
       </div>
     </div>
-  <?php else: ?>
+  <?php elseif ($section === 'users-new'): ?>
+    <div class="space-y-4">
+      <div class="flex items-center gap-4">
+        <a href="/admin/users" class="inline-flex items-center justify-center p-2 rounded-lg bg-white hover:bg-gray-200 transition-all duration-200 shadow-sm border border-gray-200" aria-label="Назад">
+          <svg class="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
+          </svg>
+        </a>
+        <h2 class="text-2xl font-semibold text-gray-900">Создать нового пользователя</h2>
+      </div>
+
+      <form data-create-user-form class="space-y-6 rounded-3xl bg-white p-6 shadow-sm">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Имя <span class="text-red-500">*</span></label>
+            <input name="name" type="text" required class="<?= $e($inputBase) ?>" placeholder="Имя пользователя">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Email <span class="text-red-500">*</span></label>
+            <input name="email" type="email" required class="<?= $e($inputBase) ?>" placeholder="email@example.com">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Пароль <span class="text-red-500">*</span></label>
+            <div class="flex rounded-lg" data-password-field>
+              <input name="password" type="password" required class="<?= $e($inputBase) ?> rounded-r-none" placeholder="Пароль" data-password-input>
+              <button
+                type="button"
+                class="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-200 bg-gray-50 text-gray-500 hover:text-gray-700 transition-colors"
+                data-password-toggle
+                aria-label="Показать пароль"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Подтверждение <span class="text-red-500">*</span></label>
+            <div class="flex rounded-lg" data-password-field>
+              <input name="confirmPassword" type="password" required class="<?= $e($inputBase) ?> rounded-r-none" placeholder="Повторите пароль" data-password-input>
+              <button
+                type="button"
+                class="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-200 bg-gray-50 text-gray-500 hover:text-gray-700 transition-colors"
+                data-password-toggle
+                aria-label="Показать пароль"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" name="role" value="Администратор">
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <a href="/admin/users" class="flex items-center justify-center transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium px-4 py-2 text-sm rounded-lg">
+            Отмена
+          </a>
+          <button type="submit" class="<?= $e($btnPrimary) ?>">
+            Создать пользователя
+          </button>
+        </div>
+      </form>
+    </div>
+  <?php elseif ($section === 'users-edit'): ?>
     <?php
       $isAdminUser = is_array($selectedUser) && ((string) ($selectedUser['userType'] ?? '')) === 'admin';
     ?>
@@ -1585,7 +1666,7 @@ $pageTitle = match ($section) {
           data-user-type="<?= $e($isAdminUser ? 'admin' : 'customer') ?>"
           class="space-y-6 rounded-3xl bg-white p-6 shadow-sm"
         >
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div>
               <label class="block text-xs text-gray-600 mb-1">Имя</label>
               <input name="name" class="<?= $e($inputBase) ?>" value="<?= $e($name) ?>" <?= $isAdminUser ? '' : 'disabled' ?> required>
@@ -1602,7 +1683,7 @@ $pageTitle = match ($section) {
               <label class="block text-xs text-gray-600 mb-1">Адрес</label>
               <input name="address" class="<?= $e($inputBase) ?>" value="<?= $e($address) ?>" <?= $isAdminUser ? '' : 'disabled' ?>>
             </div>
-            <div class="md:col-span-1">
+            <div>
               <label class="block text-xs text-gray-600 mb-1">Роль</label>
               <select name="role" class="<?= $e($inputBase) ?>" <?= $isAdminUser ? '' : 'disabled' ?>>
                 <?php if ($role !== '' && !in_array($role, ['Администратор','Менеджер','Контент-менеджер'], true)): ?>
@@ -1616,8 +1697,8 @@ $pageTitle = match ($section) {
           </div>
 
           <?php if ($isAdminUser): ?>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-              <div class="md:col-span-2">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div>
                 <label class="block text-xs text-gray-600 mb-1">Новый пароль</label>
                 <div class="flex rounded-lg" data-password-field>
                   <input name="password" type="password" class="<?= $e($inputBase) ?> rounded-r-none" placeholder="Оставьте пустым, чтобы не менять" data-password-input>
@@ -1634,7 +1715,7 @@ $pageTitle = match ($section) {
                   </button>
                 </div>
               </div>
-              <div class="md:col-span-2">
+              <div>
                 <label class="block text-xs text-gray-600 mb-1">Подтверждение пароля</label>
                 <div class="flex rounded-lg" data-password-field>
                   <input name="confirmPassword" type="password" class="<?= $e($inputBase) ?> rounded-r-none" placeholder="Повторите новый пароль" data-password-input>
@@ -1658,7 +1739,7 @@ $pageTitle = match ($section) {
             </div>
           <?php endif; ?>
 
-          <div class="grid grid-cols-1 gap-4 text-sm text-gray-600 md:grid-cols-4">
+          <div class="grid grid-cols-1 gap-4 text-sm text-gray-600 md:grid-cols-2 xl:grid-cols-4">
             <div>Заказов: <?= $e((string) $orderCount) ?></div>
             <div>Сумма покупок: <?= $e(number_format($totalSpent, 0, '.', ' ')) ?> ₽</div>
             <div>Первый заказ: <?= $e($formatDateUi($firstOrderAt)) ?></div>

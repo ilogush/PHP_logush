@@ -239,6 +239,15 @@ final class PageController
             $remember = isset($_POST['rememberMe']) || isset($_POST['remember-me']);
             $user = $this->auth->login($email, $password, $remember);
             if ($user) {
+                $name = trim((string) ($user['name'] ?? ''));
+                if ($name === '') {
+                    $emailStr = trim((string) ($user['email'] ?? $email));
+                    $atPos = strpos($emailStr, '@');
+                    if ($atPos !== false) {
+                        $name = trim(substr($emailStr, 0, $atPos));
+                    }
+                }
+                $_SESSION['flash_success'] = ($name !== '' ? ($name . ', с возвращением!') : 'С возвращением!');
                 $this->redirect('/admin/products');
                 return;
             }
@@ -309,6 +318,8 @@ final class PageController
             $entityId = rawurldecode($matches[1]);
         } elseif ($path === '/admin/users') {
             $section = 'users';
+        } elseif ($path === '/admin/users/new') {
+            $section = 'users-new';
         } elseif ($path === '/admin/users/edit') {
             $section = 'users-edit';
             $entityId = (string) ($_GET['id'] ?? '');

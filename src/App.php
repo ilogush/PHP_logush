@@ -121,6 +121,11 @@ final class App
         if ($path === '/api/cart/count') {
             return true;
         }
+        // Admin API endpoints (users/settings/products writes, etc.) rely on session auth.
+        // Without a session start, ensureAdmin() always returns Unauthorized.
+        if (str_starts_with($path, '/api/')) {
+            return true;
+        }
         return false;
     }
 }

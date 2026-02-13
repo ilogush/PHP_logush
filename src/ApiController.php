@@ -7,6 +7,7 @@ namespace Logush;
 final class ApiController
 {
     private const ORDER_STATUSES = ['new', 'processing', 'shipped', 'delivered', 'cancelled'];
+    private const ADMIN_ROLES = ['Администратор', 'Менеджер', 'Контент-менеджер'];
 
     public function __construct(
         private readonly string $baseDir,
@@ -731,30 +732,62 @@ final class ApiController
         }
 
         $payload = $this->jsonInput();
+        $name = trim((string) ($payload['name'] ?? ''));
         $email = mb_strtolower(trim((string) ($payload['email'] ?? '')));
         $role = trim((string) ($payload['role'] ?? 'Администратор'));
         $password = (string) ($payload['password'] ?? '');
 
-        if ($email === '' || $role === '' || $password === '') {
-            $this->json(['error' => 'Missing fields'], 400);
+        if ($name === '' || $email === '' || $role === '' || $password === '') {
+            $this->json(['error' => 'Заполните имя, email, роль и пароль'], 400);
+            return;
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->json(['error' => 'Некорректный email'], 400);
+            return;
+        }
+        if (!in_array($role, self::ADMIN_ROLES, true)) {
+            $this->json(['error' => 'Недопустимая роль'], 400);
+            return;
+        }
+        if (mb_strlen($password) < 8) {
+            $this->json(['error' => 'Пароль должен быть минимум 8 символов'], 400);
             return;
         }
 
         $users = $this->store->read('users');
-        foreach ($users as $user) {
+        $existingIndex = -1;
+        foreach ($users as $i => $user) {
             if (!is_array($user)) {
                 continue;
             }
             $existingEmail = mb_strtolower(trim((string) ($user['email'] ?? '')));
             if ($existingEmail === $email) {
-                $this->json(['error' => 'User already exists'], 409);
-                return;
+                $existingIndex = (int) $i;
+                break;
             }
+        }
+
+        // Admin panel UX: allow "create or update by email" (like setup_admin.php).
+        // This keeps onboarding simple on shared hosting without DB access.
+        if ($existingIndex >= 0) {
+            $now = gmdate('c');
+            $users[$existingIndex]['name'] = $name;
+            $users[$existingIndex]['email'] = $email;
+            $users[$existingIndex]['phone'] = trim((string) ($payload['phone'] ?? ($users[$existingIndex]['phone'] ?? '')));
+            $users[$existingIndex]['address'] = trim((string) ($payload['address'] ?? ($users[$existingIndex]['address'] ?? '')));
+            $users[$existingIndex]['role'] = $role;
+            $users[$existingIndex]['userType'] = 'admin';
+            $users[$existingIndex]['passwordHash'] = password_hash($password, PASSWORD_DEFAULT);
+            $users[$existingIndex]['updatedAt'] = $now;
+
+            $this->store->write('users', $users);
+            $this->json($this->mapAdminToClient($users[$existingIndex]));
+            return;
         }
 
         $newUser = [
             'id' => $this->store->nextId('users'),
-            'name' => trim((string) ($payload['name'] ?? '')),
+            'name' => $name,
             'email' => $email,
             'phone' => trim((string) ($payload['phone'] ?? '')),
             'address' => trim((string) ($payload['address'] ?? '')),
@@ -803,10 +836,19 @@ final class ApiController
 
             if ($method === 'PUT') {
                 $payload = $this->jsonInput();
+                $name = trim((string) ($payload['name'] ?? ''));
                 $email = mb_strtolower(trim((string) ($payload['email'] ?? '')));
                 $role = trim((string) ($payload['role'] ?? ''));
-                if ($email === '' || $role === '') {
-                    $this->json(['error' => 'Missing fields'], 400);
+                if ($name === '' || $email === '' || $role === '') {
+                    $this->json(['error' => 'Заполните имя, email и роль'], 400);
+                    return;
+                }
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $this->json(['error' => 'Некорректный email'], 400);
+                    return;
+                }
+                if (!in_array($role, self::ADMIN_ROLES, true)) {
+                    $this->json(['error' => 'Недопустимая роль'], 400);
                     return;
                 }
 
@@ -821,7 +863,7 @@ final class ApiController
                     }
                 }
 
-                $users[$index]['name'] = trim((string) ($payload['name'] ?? ($users[$index]['name'] ?? '')));
+                $users[$index]['name'] = $name;
                 $users[$index]['email'] = $email;
                 $users[$index]['phone'] = trim((string) ($payload['phone'] ?? ($users[$index]['phone'] ?? '')));
                 $users[$index]['address'] = trim((string) ($payload['address'] ?? ($users[$index]['address'] ?? '')));
@@ -829,6 +871,10 @@ final class ApiController
 
                 $password = (string) ($payload['password'] ?? '');
                 if ($password !== '') {
+                    if (mb_strlen($password) < 8) {
+                        $this->json(['error' => 'Пароль должен быть минимум 8 символов'], 400);
+                        return;
+                    }
                     $users[$index]['passwordHash'] = password_hash($password, PASSWORD_DEFAULT);
                 }
 

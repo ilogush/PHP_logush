@@ -54,7 +54,14 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
               name="password"
               value=""
             >
-            <button type="button" data-toggle-password class="absolute top-1/2 -translate-y-1/2 right-4 text-gray-600 hover:text-black transition-colors" aria-label="Показать пароль">
+            <button
+              type="button"
+              data-toggle-password
+              class="absolute top-1/2 -translate-y-1/2 right-4 text-gray-600 hover:text-black transition-colors z-10 pointer-events-auto"
+              aria-label="Показать пароль"
+              aria-pressed="false"
+              onclick="var i=document.getElementById('password'); if(!i) return; var toText=(i.type==='password'); i.type=toText?'text':'password'; this.setAttribute('aria-pressed', toText?'true':'false'); this.setAttribute('aria-label', toText?'Скрыть пароль':'Показать пароль');"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -89,12 +96,23 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
 
 <script>
   // Fallback: password toggle on login page (in case admin.js is cached/blocked).
-  window.addEventListener('DOMContentLoaded', function () {
-    var btn = document.querySelector('[data-toggle-password]');
-    var input = document.querySelector('[data-password-input]');
-    if (!btn || !input) return;
-    btn.addEventListener('click', function () {
-      input.type = (input.type === 'password') ? 'text' : 'password';
-    });
-  });
+  (function () {
+    function bind() {
+      var btn = document.querySelector('[data-toggle-password]');
+      var input = document.querySelector('[data-password-input]');
+      if (!btn || !input) return;
+      btn.addEventListener('click', function () {
+        var toText = (input.type === 'password');
+        input.type = toText ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', toText ? 'true' : 'false');
+        btn.setAttribute('aria-label', toText ? 'Скрыть пароль' : 'Показать пароль');
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind);
+    } else {
+      bind();
+    }
+  })();
 </script>

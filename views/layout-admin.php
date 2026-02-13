@@ -66,6 +66,16 @@ $menuItems = [
   <link rel="stylesheet" href="<?= $e($assetUrl('/css/ui.css')) ?>">
 </head>
 	<body class="__className_f367f3 text-black">
+    <?php if (isset($_SESSION['flash_success']) && is_string($_SESSION['flash_success']) && $_SESSION['flash_success'] !== ''): ?>
+      <?php $flashSuccess = (string) $_SESSION['flash_success']; unset($_SESSION['flash_success']); ?>
+      <script>
+        window.addEventListener('DOMContentLoaded', function () {
+          if (typeof window.showToast === 'function') {
+            window.showToast(<?= json_encode($flashSuccess, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>, 'success');
+          }
+        });
+      </script>
+    <?php endif; ?>
 	  <?php if (!$isAdminShell): ?>
 	    <?= $content ?>
 	    <script src="<?= $e($assetUrl('/js/toast.js')) ?>" defer></script>
