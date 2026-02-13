@@ -48,7 +48,7 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
     </section>
 
     <!-- Sewing Production Section -->
-    <section id="sewing-production" aria-label="Швейное производство" class="py-12 md:py-16 lg:py-20 border-b border-gray-500 md:grid md:grid-cols-6 lg:grid-cols-12">
+    <section id="sewing-production" aria-label="Швейное производство" class="py-12 md:py-16 lg:py-20 border-b border-gray-500 md:grid md:grid-cols-6 lg:grid-cols-12 items-start">
         <h2 class="tracking-tight text-xl leading-7 mb-4 md:mb-6 md:col-start-1 md:col-end-7 md:text-3xl md:leading-9 lg:col-start-1 lg:col-end-6 font-semibold">
             <span class="text-black block">Швейное</span>
             <span class="text-gray-600 block">производство</span>
@@ -126,7 +126,7 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
     <?php endif; ?>
 
 	    <!-- Reviews Section -->
-	    <section aria-label="Отзывы наших клиентов" class="py-12 md:py-16 lg:py-20 border-b border-gray-500 md:grid md:grid-cols-6 lg:grid-cols-12">
+	    <section aria-label="Отзывы наших клиентов" class="py-12 md:py-16 lg:py-20 border-b border-gray-500 md:grid md:grid-cols-6 lg:grid-cols-12 items-start">
 	        <h2 class="tracking-tight text-xl leading-7 mb-4 md:mb-6 md:col-start-1 md:col-end-7 md:text-3xl md:leading-9 lg:col-start-1 lg:col-end-6 font-semibold">
 	            <span class="text-black block">Отзывы</span>
 	            <span class="text-gray-600 block">наших клиентов</span>
@@ -189,7 +189,7 @@ $heroButton = (string) ($home['heroButtonText'] ?? 'Узнать больше');
 	    </section>
 
     <!-- FAQ Section -->
-    <section class="py-12 md:py-16 lg:py-20 md:grid md:grid-cols-6 lg:grid-cols-12">
+    <section class="py-12 md:py-16 lg:py-20 md:grid md:grid-cols-6 lg:grid-cols-12 items-start">
         <h2 class="tracking-tight text-xl leading-7 mb-4 md:mb-6 md:col-start-1 md:col-end-7 md:text-3xl md:leading-9 lg:col-start-1 lg:col-end-6 font-semibold">
             <span class="text-black block">Частые вопросы</span>
             <span class="text-gray-600 block">о производстве</span>
