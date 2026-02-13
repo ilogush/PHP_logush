@@ -809,6 +809,36 @@
     });
   };
 
+  const initQuoteDelete = () => {
+    qsa("[data-quote-delete]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id") || "";
+        if (!id) return;
+
+        const ok = await showConfirm({
+          title: "Удалить заявку?",
+          message: "Это действие нельзя отменить. Заявка будет удалена навсегда.",
+          confirmText: "Удалить",
+        });
+        if (!ok) return;
+
+        btn.disabled = true;
+        const res = await apiJson(`/api/quotes/${encodeURIComponent(id)}`, "DELETE", null);
+        btn.disabled = false;
+
+        if (!res.ok) {
+          const msg = (res.data && (res.data.error || res.data.message)) ? String(res.data.error || res.data.message) : "Ошибка удаления заявки";
+          showToast(msg, "error");
+          return;
+        }
+
+        const tr = btn.closest("tr");
+        if (tr) tr.remove();
+        showToast("Заявка удалена", "success");
+      });
+    });
+  };
+
   const initUserCreate = () => {
     const form = qs("[data-create-user-form]");
     if (!form) return;
@@ -1307,6 +1337,7 @@
     initProductDelete();
     initOrderDetails();
     initOrderDelete();
+    initQuoteDelete();
     initUserCreate();
     initUserEdit();
     initCustomerEditDisabled();

@@ -394,6 +394,7 @@ final class PageController
 
         $productsAll = $this->store->read('products');
         $orders = $this->store->read('orders');
+        $quotes = $this->store->read('quotes');
         $categories = $this->store->read('categories');
         $colors = $this->store->read('colors');
         $sizes = $this->store->read('sizes');
@@ -426,6 +427,8 @@ final class PageController
         } elseif (preg_match('#^/admin/orders/([^/]+)$#', $path, $matches) === 1) {
             $section = 'order-show';
             $entityId = rawurldecode($matches[1]);
+        } elseif ($path === '/admin/quotes') {
+            $section = 'quotes';
         } elseif ($path === '/admin/users') {
             $section = 'users';
         } elseif ($path === '/admin/users/new') {
@@ -468,6 +471,7 @@ final class PageController
             'products' => $products,
             'pagination' => $pagination,
             'orders' => $orders,
+            'quotes' => $quotes,
             'categories' => $categories,
             'colors' => $colors,
             'sizes' => $sizes,

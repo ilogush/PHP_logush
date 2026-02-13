@@ -70,6 +70,7 @@ $pageTitle = match ($section) {
   'colors' => 'Цвета',
   'sizes' => 'Размеры',
   'orders', 'order-show' => 'Заказы',
+  'quotes' => 'Заявки',
   'users', 'users-new', 'users-edit' => 'Пользователи',
   'settings' => 'Настройки',
   default => 'Админ панель',
@@ -1222,6 +1223,80 @@ $pageTitle = match ($section) {
                   <div class="flex justify-start gap-2">
                     <a href="/admin/orders/<?= $e(rawurlencode($id)) ?>" class="<?= $e($btnSecondaryIcon) ?>" title="Просмотр заказа" aria-label="Просмотр заказа"><?= $eyeIcon ?></a>
                     <button type="button" data-delete-order-id="<?= $e($id) ?>" class="<?= $e($btnSecondaryIcon) ?>" title="Удалить заказ" aria-label="Удалить заказ"><?= $trashIcon ?></button>
+                  </div>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<?php elseif ($section === 'quotes'): ?>
+  <?php $quotesList = isset($quotes) && is_array($quotes) ? $quotes : []; ?>
+  <div>
+    <div class="mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+      <div>
+        <h2 class="text-2xl font-semibold text-gray-900"><?= $e($pageTitle) ?></h2>
+        <p class="mt-1 text-sm text-gray-600">Всего заявок: <?= $e((string) count($quotesList)) ?></p>
+      </div>
+      <div class="flex w-full flex-col gap-3 md:flex-row xl:w-auto">
+        <div class="w-full md:w-[28rem]">
+          <input data-table-search-input type="text" class="<?= $e($inputBase) ?>" placeholder="Поиск по имени, email, телефону, комментарию" value="">
+        </div>
+      </div>
+    </div>
+
+    <div class="<?= $e($tableWrap) ?>">
+      <table class="<?= $e($table) ?>">
+        <thead class="<?= $e($thead) ?>">
+          <tr>
+            <th class="<?= $e($th) ?>">ID</th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">Дата</th>
+            <th class="<?= $e($th) ?>">Контакт</th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">Телефон</th>
+            <th class="<?= $e($th) ?>">Комментарий</th>
+            <th class="<?= $e($th) ?> whitespace-nowrap">Действия</th>
+          </tr>
+        </thead>
+        <tbody class="<?= $e($tbody) ?>">
+          <?php if (count($quotesList) === 0): ?>
+            <tr><td class="<?= $e($td) ?> text-center text-gray-500 py-8" colspan="6">Нет заявок</td></tr>
+          <?php else: ?>
+            <?php foreach ($quotesList as $q): ?>
+              <?php if (!is_array($q)) { continue; } ?>
+              <?php
+                $id = (string) ($q['id'] ?? '');
+                $createdAt = (string) ($q['createdAt'] ?? ($q['created_at'] ?? ''));
+                $name = trim((string) ($q['name'] ?? ''));
+                $email = trim((string) ($q['email'] ?? ''));
+                $phone = trim((string) ($q['phone'] ?? ''));
+                $message = trim((string) ($q['message'] ?? ''));
+                $searchText = implode(' ', array_filter([$id, $createdAt, $name, $email, $phone, $message]));
+              ?>
+              <tr class="hover:bg-gray-50 transition-colors" data-table-search-row data-search-text="<?= $e($searchText) ?>">
+                <td class="<?= $e($td) ?> font-medium text-gray-900">#<?= $e($id) ?></td>
+                <td class="<?= $e($td) ?> whitespace-nowrap"><?= $e($formatDate($createdAt)) ?></td>
+                <td class="<?= $e($td) ?>">
+                  <div class="text-sm">
+                    <div class="font-medium text-gray-900"><?= $e($name !== '' ? $name : '—') ?></div>
+                    <?php if ($email !== ''): ?>
+                      <div class="text-gray-500"><?= $e($email) ?></div>
+                    <?php endif; ?>
+                  </div>
+                </td>
+                <td class="<?= $e($td) ?> whitespace-nowrap"><?= $e($phone !== '' ? $phone : '—') ?></td>
+                <td class="<?= $e($td) ?> text-sm text-gray-600 whitespace-pre-wrap"><?= $e($message !== '' ? $message : '—') ?></td>
+                <td class="<?= $e($td) ?> whitespace-nowrap">
+                  <div class="flex gap-2 justify-start">
+                    <button
+                      type="button"
+                      data-quote-delete
+                      data-id="<?= $e($id) ?>"
+                      class="<?= $e($btnSecondaryIcon) ?>"
+                      title="Удалить заявку"
+                      aria-label="Удалить заявку"
+                    ><?= $trashIcon ?></button>
                   </div>
                 </td>
               </tr>

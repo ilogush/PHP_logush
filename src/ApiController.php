@@ -83,6 +83,16 @@ final class ApiController
             return;
         }
 
+        if ($path === '/api/quotes') {
+            $this->quotes($method);
+            return;
+        }
+
+        if (preg_match('#^/api/quotes/([^/]+)$#', $path, $matches) === 1) {
+            $this->quoteById($method, rawurldecode($matches[1]));
+            return;
+        }
+
         if ($path === '/api/settings') {
             $this->settings($method);
             return;
@@ -612,6 +622,60 @@ final class ApiController
         $orders[] = $order;
         $this->store->write('orders', $orders);
         $this->json($order, 201);
+    }
+
+    private function quotes(string $method): void
+    {
+        if (!$this->ensureAdmin()) {
+            return;
+        }
+
+        if ($method === 'GET') {
+            $quotes = $this->store->read('quotes');
+            $this->json(is_array($quotes) ? $quotes : []);
+            return;
+        }
+
+        $this->json(['error' => 'Method not allowed'], 405);
+    }
+
+    private function quoteById(string $method, string $id): void
+    {
+        if (!$this->ensureAdmin()) {
+            return;
+        }
+
+        $quotes = $this->store->read('quotes');
+        $list = is_array($quotes) ? $quotes : [];
+        $index = -1;
+        foreach ($list as $i => $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            if ((string) ($row['id'] ?? '') === (string) $id) {
+                $index = (int) $i;
+                break;
+            }
+        }
+
+        if ($index < 0) {
+            $this->json(['error' => 'Not found'], 404);
+            return;
+        }
+
+        if ($method === 'GET') {
+            $this->json($list[$index]);
+            return;
+        }
+
+        if ($method === 'DELETE') {
+            unset($list[$index]);
+            $this->store->write('quotes', array_values($list));
+            $this->json(['ok' => true]);
+            return;
+        }
+
+        $this->json(['error' => 'Method not allowed'], 405);
     }
 
     private function orderById(string $method, string $id): void

@@ -13,7 +13,7 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
       <?php endif; ?>
 
       <form class="space-y-6 border border-gray-500 p-6" method="post" action="/quote">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-black mb-2">Имя *</label>
             <input type="text" name="name" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
@@ -22,11 +22,10 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
             <label class="block text-sm font-medium text-black mb-2">Email *</label>
             <input type="email" name="email" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
           </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-black mb-2">Телефон *</label>
-          <input type="text" name="phone" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
+          <div>
+            <label class="block text-sm font-medium text-black mb-2">Телефон *</label>
+            <input type="text" name="phone" class="w-full border border-gray-500 px-4 py-2 focus:outline-none focus:border-black" required>
+          </div>
         </div>
 
         <div>
