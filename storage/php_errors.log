@@ -1,0 +1,67 @@
+[13-Feb-2026 17:46:26 Europe/Moscow] DB connect skipped: missing DB_HOST/DB_NAME/DB_USER in env/.env
+[13-Feb-2026 17:46:26 Europe/Moscow] PHP Fatal error:  Uncaught RuntimeException: Database connection failed. Check DB_* variables in .env. in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php:27
+Stack trace:
+#0 /Users/ulethai/Documents/Dev/PHP_logush/src/App.php(18): Logush\DataStore->__construct('/Users/ulethai/...')
+#1 /Users/ulethai/Documents/Dev/PHP_logush/public/index.php(18): Logush\App->__construct('/Users/ulethai/...')
+#2 {main}
+  thrown in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php on line 27
+[13-Feb-2026 17:46:27 Europe/Moscow] DB connect skipped: missing DB_HOST/DB_NAME/DB_USER in env/.env
+[13-Feb-2026 17:46:27 Europe/Moscow] PHP Fatal error:  Uncaught RuntimeException: Database connection failed. Check DB_* variables in .env. in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php:27
+Stack trace:
+#0 /Users/ulethai/Documents/Dev/PHP_logush/src/App.php(18): Logush\DataStore->__construct('/Users/ulethai/...')
+#1 /Users/ulethai/Documents/Dev/PHP_logush/public/index.php(18): Logush\App->__construct('/Users/ulethai/...')
+#2 {main}
+  thrown in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php on line 27
+[13-Feb-2026 17:47:31 Europe/Moscow] DB connect failed (host=127.0.0.1): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:47:31 Europe/Moscow] DB connect failed (host=localhost): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:47:31 Europe/Moscow] PHP Fatal error:  Uncaught RuntimeException: Database connection failed. Check DB_* variables in .env. in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php:27
+Stack trace:
+#0 /Users/ulethai/Documents/Dev/PHP_logush/src/App.php(18): Logush\DataStore->__construct('/Users/ulethai/...')
+#1 /Users/ulethai/Documents/Dev/PHP_logush/public/index.php(18): Logush\App->__construct('/Users/ulethai/...')
+#2 {main}
+  thrown in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php on line 27
+[13-Feb-2026 17:48:30 Europe/Moscow] DB connect failed (host=127.0.0.1): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:48:30 Europe/Moscow] DB connect failed (host=localhost): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:48:30 Europe/Moscow] PHP Fatal error:  Uncaught RuntimeException: Database connection failed. Check DB_* variables in .env. in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php:27
+Stack trace:
+#0 /Users/ulethai/Documents/Dev/PHP_logush/src/App.php(18): Logush\DataStore->__construct('/Users/ulethai/...')
+#1 /Users/ulethai/Documents/Dev/PHP_logush/public/index.php(18): Logush\App->__construct('/Users/ulethai/...')
+#2 {main}
+  thrown in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php on line 27
+[13-Feb-2026 17:48:33 Europe/Moscow] DB connect failed (host=127.0.0.1): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:48:33 Europe/Moscow] DB connect failed (host=localhost): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:48:33 Europe/Moscow] PHP Fatal error:  Uncaught RuntimeException: Database connection failed. Check DB_* variables in .env. in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php:27
+Stack trace:
+#0 /Users/ulethai/Documents/Dev/PHP_logush/src/App.php(18): Logush\DataStore->__construct('/Users/ulethai/...')
+#1 /Users/ulethai/Documents/Dev/PHP_logush/public/index.php(18): Logush\App->__construct('/Users/ulethai/...')
+#2 {main}
+  thrown in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php on line 27
+[13-Feb-2026 17:49:28 Europe/Moscow] DB connect failed (host=127.0.0.1): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:49:28 Europe/Moscow] DB connect failed (host=localhost): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:49:28 Europe/Moscow] DB connect failed (host=127.0.0.1): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:49:28 Europe/Moscow] DB connect failed (host=localhost): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:49:28 Europe/Moscow] PHP Fatal error:  Uncaught RuntimeException: Database connection failed. Check DB_* variables in .env. in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php:27
+Stack trace:
+#0 /Users/ulethai/Documents/Dev/PHP_logush/scripts/seed.php(8): Logush\DataStore->__construct('/Users/ulethai/...')
+#1 {main}
+  thrown in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php on line 27
+[13-Feb-2026 17:49:37 Europe/Moscow] DB connect failed (host=127.0.0.1): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:49:37 Europe/Moscow] DB connect failed (host=localhost): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:49:37 Europe/Moscow] PHP Fatal error:  Uncaught RuntimeException: Database connection failed. Check DB_* variables in .env. in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php:27
+Stack trace:
+#0 /Users/ulethai/Documents/Dev/PHP_logush/src/App.php(18): Logush\DataStore->__construct('/Users/ulethai/...')
+#1 /Users/ulethai/Documents/Dev/PHP_logush/public/index.php(18): Logush\App->__construct('/Users/ulethai/...')
+#2 {main}
+  thrown in /Users/ulethai/Documents/Dev/PHP_logush/src/DataStore.php on line 27
+[13-Feb-2026 17:50:17 Europe/Moscow] DB connect failed (host=127.0.0.1): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 17:50:17 Europe/Moscow] DB connect failed (host=localhost): SQLSTATE[HY000] [1045] Access denied for user 'logush'@'localhost' (using password: YES)
+[13-Feb-2026 20:28:37 Europe/Moscow] PHP Warning:  ftp_put(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 122
+[13-Feb-2026 20:29:37 Europe/Moscow] PHP Warning:  ftp_size(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 114
+[13-Feb-2026 20:30:37 Europe/Moscow] PHP Warning:  ftp_put(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 122
+[13-Feb-2026 20:31:37 Europe/Moscow] PHP Warning:  ftp_size(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 114
+[13-Feb-2026 20:32:37 Europe/Moscow] PHP Warning:  ftp_put(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 122
+[13-Feb-2026 20:33:37 Europe/Moscow] PHP Warning:  ftp_size(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 114
+[13-Feb-2026 20:34:37 Europe/Moscow] PHP Warning:  ftp_put(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 122
+[13-Feb-2026 20:35:37 Europe/Moscow] PHP Warning:  ftp_size(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 114
+[13-Feb-2026 20:44:22 Europe/Moscow] PHP Warning:  ftp_connect(): Operation timed out in /Users/ulethai/Documents/Dev/PHP_logush/scripts/ftp_upload.php on line 23
+[13-Feb-2026 21:38:04 Europe/Moscow] PHP Warning:  ftp_connect(): Operation timed out in Command line code on line 1
