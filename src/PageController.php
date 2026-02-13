@@ -18,8 +18,8 @@ final class PageController
     {
         $isReadRequest = $method === 'GET' || $method === 'HEAD';
 
-        // Public content pages should be dynamic so settings changes in admin reflect immediately.
-        if ($isReadRequest && in_array($path, ['/', '/about', '/services', '/vacancies', '/contact'], true)) {
+        // Public content pages: keep the home page dynamic, but keep other pages in their original SSR snapshot layout.
+        if ($isReadRequest && $path === '/') {
             $this->renderContentPage($path);
             return;
         }
