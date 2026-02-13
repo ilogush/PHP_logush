@@ -46,7 +46,7 @@ $menuItems = [
   [
     'name' => 'Заявки',
     'path' => '/admin/quotes',
-    'icon' => '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51 1.36-.733a2.25 2.25 0 001.183-1.981V8.25a2.25 2.25 0 00-1.183-1.981l-7.5-4.039a2.25 2.25 0 00-2.134 0l-7.5 4.039A2.25 2.25 0 002.25 8.25v10.906a2.25 2.25 0 001.183 1.981l1.36.733m14.954-8.802L12 12.75l-7.5-4.039" /></svg>',
+    'icon' => '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5A2.25 2.25 0 0119.5 19.5h-15A2.25 2.25 0 012.25 17.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.909A2.25 2.25 0 012.25 6.993V6.75" /></svg>',
   ],
   [
     'name' => 'Пользователи',
